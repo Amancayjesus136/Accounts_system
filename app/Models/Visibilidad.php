@@ -14,7 +14,7 @@ class Visibilidad extends Model
         'estado_visibilidad',
     ];
 
-     public function getCreatedAgoAttribute()
+    public function getCreatedAgoAttribute()
     {
         return Carbon::parse($this->created_at)->diffForHumans();
     }

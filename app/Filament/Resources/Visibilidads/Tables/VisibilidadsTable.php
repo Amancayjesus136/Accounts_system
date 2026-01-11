@@ -21,6 +21,7 @@ class VisibilidadsTable
 
                 TextColumn::make('estado_visibilidad')
                     ->numeric()
+                    ->label('Estado')
                     ->searchable()
                     ->badge()
                     ->icon(fn (int $state) => $state === 1 ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle')

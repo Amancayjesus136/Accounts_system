@@ -46,7 +46,7 @@ class GrupoResource extends Resource
     {
         return [
             'index' => ListGrupos::route('/'),
-            'create' => CreateGrupo::route('/create'),
+            // 'create' => CreateGrupo::route('/create'),
             'edit' => EditGrupo::route('/{record}/edit'),
         ];
     }

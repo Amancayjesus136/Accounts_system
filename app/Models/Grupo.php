@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Grupo extends Model
 {
@@ -18,5 +19,15 @@ class Grupo extends Model
     public function visibilidad()
     {
         return $this->belongsTo(Visibilidad::class, 'id_visibilidad', 'id_visibilidad');
+    }
+
+    public function getCreatedAgoAttribute()
+    {
+        return Carbon::parse($this->created_at)->diffForHumans();
+    }
+
+    public function getUpdatedAgoAttribute()
+    {
+        return Carbon::parse($this->updated_at)->diffForHumans();
     }
 }
