@@ -24,6 +24,7 @@ class ListVisibilidads extends ListRecords
                 ->modalHeading('Crear visibilidad')
                 ->modalSubmitActionLabel('Guardar')
                 ->modalWidth('3xl')
+                ->successNotificationTitle('La visibilidad ha sido creada correctamente')
                 ->form([
                     TextInput::make('tipo_visibilidad')
                         ->label('Tipo de visibilidad')

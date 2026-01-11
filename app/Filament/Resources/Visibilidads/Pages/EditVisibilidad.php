@@ -49,7 +49,8 @@ class EditVisibilidad extends EditRecord
                 })
                 ->successNotificationTitle('Registro activado'),
 
-            // DeleteAction::make(),
+            DeleteAction::make()
+                ->icon('heroicon-o-trash'),
         ];
     }
 }
