@@ -21,6 +21,11 @@ class Grupo extends Model
         return $this->belongsTo(Visibilidad::class, 'id_visibilidad', 'id_visibilidad');
     }
 
+    public function asignados()
+    {
+        return $this->hasMany(Asignado::class, 'id_grupo', 'id_grupo');
+    }
+
     public function getCreatedAgoAttribute()
     {
         return Carbon::parse($this->created_at)->diffForHumans();

@@ -21,16 +21,6 @@ class GrupoForm
                     ->columns(1)
                     ->columnSpan(8)
                     ->schema([
-                        // Select::make('id_visibilidad')
-                        //     ->label('Visibilidad')
-                        //     ->options(
-                        //         Visibilidad::where('estado_visibilidad', 1)
-                        //             ->pluck('tipo_visibilidad', 'id_visibilidad')
-                        //     )
-                        //     ->searchable()
-                        //     ->preload()
-                        //     ->required(),
-
                         TextInput::make('nombre_grupo')
                             ->required(),
                     ]),
