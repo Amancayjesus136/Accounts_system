@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('grupos', function (Blueprint $table) {
             $table->id('id_grupo');
-            $table->string('id_visibilidad');
-            $table->string('id_user');
+            $table->bigInteger('id_visibilidad');
+            $table->bigInteger('id_user');
             $table->string('nombre_grupo');
-            $table->string('estado_grupo');
+            $table->integer('estado_grupo');
             $table->timestamps();
         });
     }
