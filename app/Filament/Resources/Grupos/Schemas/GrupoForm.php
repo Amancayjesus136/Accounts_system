@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Grupos\Schemas;
 
+use App\Models\Visibilidad;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 
 class GrupoForm
@@ -11,13 +13,17 @@ class GrupoForm
     {
         return $schema
             ->components([
-                TextInput::make('id_visibilidad')
+                Select::make('id_visibilidad')
+                    ->label('Visibilidad')
+                    ->options(
+                        Visibilidad::where('estado_visibilidad', 1)
+                            ->pluck('tipo_visibilidad', 'id_visibilidad')
+                    )
+                    ->searchable()
+                    ->preload()
                     ->required(),
-                TextInput::make('id_user')
-                    ->required(),
+
                 TextInput::make('nombre_grupo')
-                    ->required(),
-                TextInput::make('estado_grupo')
                     ->required(),
             ]);
     }

@@ -14,4 +14,9 @@ class Grupo extends Model
         'nombre_grupo',
         'estado_grupo',
     ];
+
+    public function visibilidad()
+    {
+        return $this->belongsTo(Visibilidad::class, 'id_visibilidad', 'id_visibilidad');
+    }
 }

@@ -48,7 +48,7 @@ class VisibilidadResource extends Resource
     {
         return [
             'index' => ListVisibilidads::route('/'),
-            'create' => CreateVisibilidad::route('/create'),
+            // 'create' => CreateVisibilidad::route('/create'),
             'edit' => EditVisibilidad::route('/{record}/edit'),
         ];
     }
