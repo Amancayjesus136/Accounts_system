@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class VisibilidadResource extends Resource
 {
@@ -49,6 +50,25 @@ class VisibilidadResource extends Resource
             'index' => ListVisibilidads::route('/'),
             'create' => CreateVisibilidad::route('/create'),
             'edit' => EditVisibilidad::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'tipo_visibilidad',
+        ];
+    }
+
+    public static function getGlobalSearchResultTitle(Model $record): string
+    {
+        return $record->tipo_visibilidad;
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Estado' => $record->estado_visibilidad === 1 ? 'Activo' : 'Inactivo',
         ];
     }
 }
