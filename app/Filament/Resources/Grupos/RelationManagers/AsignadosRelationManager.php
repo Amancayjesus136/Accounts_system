@@ -23,17 +23,26 @@ class AsignadosRelationManager extends RelationManager
     public function getTabs(): array
     {
         return [
+            // 'todos' => Tab::make('Todos')
+            //     ->badge($this->getOwnerRecord()->asignados()->count()),
+
             'integrantes' => Tab::make('Integrantes')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 1))
-                ->icon('heroicon-m-user-group'),
+                ->icon('heroicon-m-user-group')
+                ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 1)->count())
+                ->badgeColor('success'),
 
             'pendientes' => Tab::make('Pendientes')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 2))
-                ->icon('heroicon-m-clock'),
+                ->icon('heroicon-m-clock')
+                ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 2)->count())
+                ->badgeColor('warning'),
 
             'rechazados' => Tab::make('Rechazados')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 0))
-                ->icon('heroicon-m-x-circle'),
+                ->icon('heroicon-m-x-circle')
+                ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 0)->count())
+                ->badgeColor('danger'),
         ];
     }
 

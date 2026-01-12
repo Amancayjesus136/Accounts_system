@@ -18,4 +18,9 @@ class Asignado extends Model
     {
         return $this->belongsTo(User::class, 'id_usuario', 'id');
     }
+
+    public function grupo()
+{
+    return $this->belongsTo(Grupo::class, 'id_grupo', 'id_grupo');
+}
 }

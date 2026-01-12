@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\Asignados\Tables;
 
+use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -18,7 +19,6 @@ class AsignadosTable
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->where('id_usuario', Auth::id()))
-
             ->columns([
                 TextColumn::make('usuario.name')
                     ->label('Nombre de integrante')
@@ -53,12 +53,66 @@ class AsignadosTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                Action::make('aceptar')
+                    ->label('Aceptar')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn ($record) => $record->estado_asignado === 2)
+                    ->requiresConfirmation()
+                    ->action(function ($record, $livewire) {
+                        $record->update(['estado_asignado' => 1]);
+                        $livewire->dispatch('refreshTabs');
+
+                        $duenoDelGrupo = $record->grupo?->id_user ? User::find($record->grupo->id_user) : null;
+
+                        $usuarioActual = Auth::user();
+                        $nombreUsuarioQueAcepta = $usuarioActual ? $usuarioActual->name : 'Un usuario';
+
+                        if ($duenoDelGrupo) {
+                            Notification::make()
+                                ->title('Solicitud Aceptada')
+                                ->body("{$nombreUsuarioQueAcepta} se ha unido al grupo: {$record->grupo->nombre_grupo}.")
+                                ->icon('heroicon-o-check-circle')
+                                ->success()
+                                ->sendToDatabase($duenoDelGrupo);
+                        }
+
+                        Notification::make()
+                            ->title('Has aceptado la solicitud')
+                            ->success()
+                            ->send();
+                    }),
+
+                Action::make('rechazar')
+                    ->label('Rechazar')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->visible(fn ($record) => $record->estado_asignado === 2)
+                    ->requiresConfirmation()
+                    ->action(function ($record, $livewire) {
+                        $record->update(['estado_asignado' => 0]);
+                        $livewire->dispatch('refreshTabs');
+
+                        $duenoDelGrupo = $record->grupo?->id_user ? User::find($record->grupo->id_user) : null;
+
+                        $usuarioActual = Auth::user();
+                        $nombreUsuarioQueRechaza = $usuarioActual ? $usuarioActual->name : 'Un usuario';
+
+                        if ($duenoDelGrupo) {
+                            Notification::make()
+                                ->title('Solicitud Rechazada')
+                                ->body("{$nombreUsuarioQueRechaza} rechazó la invitación al grupo: {$record->grupo->nombre_grupo}.")
+                                ->icon('heroicon-o-x-circle')
+                                ->danger()
+                                ->sendToDatabase($duenoDelGrupo);
+                        }
+
+                        Notification::make()
+                            ->title('Has rechazado la solicitud')
+                            ->warning()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
