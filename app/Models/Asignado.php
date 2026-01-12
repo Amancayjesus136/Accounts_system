@@ -13,4 +13,9 @@ class Asignado extends Model
         'id_usuario',
         'estado_asignado',
     ];
+
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'id_usuario', 'id');
+    }
 }
