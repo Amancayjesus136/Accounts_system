@@ -6,18 +6,36 @@ use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema; // Importamos Schema
-use Filament\Tables\Table;
-use Filament\Tables;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Notifications\Notification;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+use Filament\Tables; // Importante para acceder a Tables\Actions
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AsignadosRelationManager extends RelationManager
 {
     protected static string $relationship = 'asignados';
+
+    public function getTabs(): array
+    {
+        return [
+            'integrantes' => Tab::make('Integrantes')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 1))
+                ->icon('heroicon-m-user-group'),
+
+            'pendientes' => Tab::make('Pendientes')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 2))
+                ->icon('heroicon-m-clock'),
+
+            'rechazados' => Tab::make('Rechazados')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 0))
+                ->icon('heroicon-m-x-circle'),
+        ];
+    }
 
     public function form(Schema $schema): Schema
     {
@@ -26,10 +44,19 @@ class AsignadosRelationManager extends RelationManager
                 Select::make('id_usuario')
                     ->label('Usuario')
                     ->columnSpanFull()
-                    ->columns(1)
-                    ->options(User::all()->pluck('email', 'id'))
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->getSearchResultsUsing(function (string $search, RelationManager $livewire) {
+                        $usuariosAsignados = $livewire->getOwnerRecord()
+                            ->asignados()
+                            ->pluck('id_usuario');
+
+                        return User::where('email', 'like', "%{$search}%")
+                            ->whereNotIn('id', $usuariosAsignados)
+                            ->limit(50)
+                            ->pluck('email', 'id');
+                    })
+                    ->getOptionLabelUsing(fn ($value): ?string => User::find($value)?->email),
             ]);
     }
 
@@ -38,12 +65,8 @@ class AsignadosRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id_usuario')
             ->columns([
-                TextColumn::make('usuario.name')
-                    ->label('Nombre de integrante'),
-
-                TextColumn::make('usuario.email')
-                    ->label('Correo'),
-
+                TextColumn::make('usuario.name')->label('Nombre de integrante')->searchable(),
+                TextColumn::make('usuario.email')->label('Correo')->searchable(),
                 TextColumn::make('estado_asignado')
                     ->label('Estado')
                     ->badge()
@@ -80,7 +103,6 @@ class AsignadosRelationManager extends RelationManager
                     ->mutateFormDataUsing(function (array $data): array {
                         return $this->mutateFormDataBeforeCreate($data);
                     }),
-
                 DeleteAction::make(),
             ]);
     }
@@ -88,6 +110,18 @@ class AsignadosRelationManager extends RelationManager
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data = $this->setEstadoPorDefecto($data);
+
+        $usuarioDestino = User::find($data['id_usuario']);
+
+        if ($usuarioDestino) {
+            Notification::make()
+                ->title('Asignación de Grupo')
+                ->body("Has sido asignado a un nuevo grupo.")
+                ->icon('heroicon-o-user-group')
+                ->success()
+                ->sendToDatabase($usuarioDestino);
+        }
+
         return $data;
     }
 

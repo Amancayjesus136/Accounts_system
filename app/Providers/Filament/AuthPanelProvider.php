@@ -28,6 +28,8 @@ class AuthPanelProvider extends PanelProvider
             ->id('auth')
             ->path('admin')
             ->login()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->colors([
                 'primary' => Color::Blue,
             ])
