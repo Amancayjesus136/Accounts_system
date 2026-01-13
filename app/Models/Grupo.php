@@ -26,6 +26,11 @@ class Grupo extends Model
         return $this->hasMany(Asignado::class, 'id_grupo', 'id_grupo');
     }
 
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id');
+    }
+
     public function getCreatedAgoAttribute()
     {
         return Carbon::parse($this->created_at)->diffForHumans();

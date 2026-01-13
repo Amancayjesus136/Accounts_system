@@ -20,12 +20,14 @@ class AsignadosTable
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->where('id_usuario', Auth::id()))
             ->columns([
-                TextColumn::make('usuario.name')
-                    ->label('Nombre de integrante')
-                    ->searchable(),
-                TextColumn::make('usuario.email')
-                    ->label('Correo')
-                    ->searchable(),
+              TextColumn::make('grupo.owner.name')
+                ->label('Nombre del solicitante')
+                ->searchable(),
+
+            TextColumn::make('grupo.owner.email')
+                ->label('Correo del solicitante')
+                ->searchable(),
+
                 TextColumn::make('estado_asignado')
                     ->label('Estado')
                     ->badge()
