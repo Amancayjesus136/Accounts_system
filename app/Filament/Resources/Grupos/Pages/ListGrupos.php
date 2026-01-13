@@ -4,15 +4,52 @@ namespace App\Filament\Resources\Grupos\Pages;
 
 use App\Filament\Resources\Grupos\GrupoResource;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListGrupos extends ListRecords
 {
     protected static string $resource = GrupoResource::class;
+
+    public function getTabsPosition(): string
+    {
+        return 'before';
+    }
+
+    public function getTabsWidth(): string
+    {
+        return 'max-w-xs';
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            'mis_grupos' => Tab::make('Mis Grupos')
+                ->icon('heroicon-m-user-circle')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_user', Auth::id()))
+                ->badge(static::getModel()::where('id_user', Auth::id())->count())
+                ->badgeColor('primary'),
+
+            'pertenezco' => Tab::make('Donde pertenezco')
+                ->icon('heroicon-m-hand-raised')
+                ->modifyQueryUsing(function (Builder $query) {
+                    return $query->whereHas('asignados', function (Builder $query) {
+                        $query->where('id_usuario', Auth::id())
+                              ->where('estado_asignado', 1);
+                    });
+                })
+                ->badge(
+                    static::getModel()::whereHas('asignados', function ($q) {
+                        $q->where('id_usuario', Auth::id())->where('estado_asignado', 1);
+                    })->count()
+                )
+                ->badgeColor('success'),
+        ];
+    }
 
     protected function getHeaderActions(): array
     {
@@ -21,24 +58,10 @@ class ListGrupos extends ListRecords
                 ->label('Nuevo grupo')
                 ->icon('heroicon-o-plus')
                 ->modalHeading('Crear grupo')
-                ->modalSubmitActionLabel('Guardar')
                 ->modalWidth('3xl')
-                ->successNotificationTitle('El grupo ha sido creada correctamente')
                 ->form([
                     Grid::make(1)
                         ->schema([
-                            // Select::make('id_visibilidad')
-                            //     ->label('Tipo visibilidad')
-                            //     ->relationship(
-                            //         name: 'visibilidad',
-                            //         titleAttribute: 'tipo_visibilidad',
-                            //         modifyQueryUsing: fn ($query) => $query->where('estado_visibilidad', 1)
-                            //     )
-                            //     ->required()
-                            //     ->preload()
-                            //     ->searchable()
-                            //     ->columnSpan(1),
-
                             TextInput::make('nombre_grupo')
                                 ->label('Nombre de grupo')
                                 ->required(),

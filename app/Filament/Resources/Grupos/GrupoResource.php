@@ -7,7 +7,7 @@ use App\Filament\Resources\Grupos\Pages\EditGrupo;
 use App\Filament\Resources\Grupos\Pages\ListGrupos;
 use App\Filament\Resources\Grupos\Schemas\GrupoForm;
 use App\Filament\Resources\Grupos\Tables\GruposTable;
-use App\Filament\Resources\Grupos\RelationManagers\AsignadosRelationManager; // 1. IMPORTANTE: Importa el manager
+use App\Filament\Resources\Grupos\RelationManagers\AsignadosRelationManager;
 use App\Models\Grupo;
 use BackedEnum;
 use UnitEnum;
