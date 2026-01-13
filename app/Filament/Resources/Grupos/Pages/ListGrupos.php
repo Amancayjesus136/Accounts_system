@@ -64,6 +64,7 @@ class ListGrupos extends ListRecords
                         ->schema([
                             TextInput::make('nombre_grupo')
                                 ->label('Nombre de grupo')
+                                ->unique()
                                 ->required(),
                         ]),
                 ])

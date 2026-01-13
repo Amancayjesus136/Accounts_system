@@ -28,6 +28,7 @@ class ListVisibilidads extends ListRecords
                 ->form([
                     TextInput::make('tipo_visibilidad')
                         ->label('Tipo de visibilidad')
+                        ->unique()
                         ->required(),
                 ])
                 ->mutateFormDataUsing(function (array $data) {

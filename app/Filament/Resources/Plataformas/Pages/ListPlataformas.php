@@ -35,6 +35,7 @@ class ListPlataformas extends ListRecords
 
                             TextInput::make('nombre_plataforma')
                                 ->label('Nombre de la plataforma')
+                                ->unique()
                                 ->required(),
                         ]),
                 ])
