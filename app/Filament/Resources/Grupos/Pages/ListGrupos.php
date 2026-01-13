@@ -2,53 +2,33 @@
 
 namespace App\Filament\Resources\Grupos\Pages;
 
+use App\Filament\Clusters\GruposCluster;
 use App\Filament\Resources\Grupos\GrupoResource;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use BackedEnum;
 
-class ListGrupos extends ListRecords
+class ListGrupos extends BaseGrupoPage
 {
     protected static string $resource = GrupoResource::class;
+    protected static ?string $cluster = GruposCluster::class;
 
-    public function getTabsPosition(): string
+    protected static ?string $title = 'Mis Grupos';
+    protected static ?string $navigationLabel = 'Mis Grupos';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-circle';
+
+    public function getSubNavigation(): array
     {
-        return 'before';
+        return static::getResource()::getRecordSubNavigation($this);
     }
 
-    public function getTabsWidth(): string
+    protected function getTableQuery(): ?Builder
     {
-        return 'max-w-xs';
-    }
-
-    public function getTabs(): array
-    {
-        return [
-            'mis_grupos' => Tab::make('Mis Grupos')
-                ->icon('heroicon-m-user-circle')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_user', Auth::id()))
-                ->badge(static::getModel()::where('id_user', Auth::id())->count())
-                ->badgeColor('primary'),
-
-            'pertenezco' => Tab::make('Donde pertenezco')
-                ->icon('heroicon-m-hand-raised')
-                ->modifyQueryUsing(function (Builder $query) {
-                    return $query->whereHas('asignados', function (Builder $query) {
-                        $query->where('id_usuario', Auth::id())
-                              ->where('estado_asignado', 1);
-                    });
-                })
-                ->badge(
-                    static::getModel()::whereHas('asignados', function ($q) {
-                        $q->where('id_usuario', Auth::id())->where('estado_asignado', 1);
-                    })->count()
-                )
-                ->badgeColor('success'),
-        ];
+        return parent::getTableQuery()
+            ->where('id_user', Auth::id());
     }
 
     protected function getHeaderActions(): array
@@ -57,16 +37,11 @@ class ListGrupos extends ListRecords
             CreateAction::make()
                 ->label('Nuevo grupo')
                 ->icon('heroicon-o-plus')
-                ->modalHeading('Crear grupo')
                 ->modalWidth('3xl')
                 ->form([
-                    Grid::make(1)
-                        ->schema([
-                            TextInput::make('nombre_grupo')
-                                ->label('Nombre de grupo')
-                                ->unique()
-                                ->required(),
-                        ]),
+                    Grid::make(1)->schema([
+                        TextInput::make('nombre_grupo')->required()->unique(),
+                    ]),
                 ])
                 ->mutateFormDataUsing(function (array $data) {
                     $data['estado_grupo'] = 1;

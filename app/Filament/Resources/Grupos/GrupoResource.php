@@ -5,11 +5,14 @@ namespace App\Filament\Resources\Grupos;
 use App\Filament\Resources\Grupos\Pages\CreateGrupo;
 use App\Filament\Resources\Grupos\Pages\EditGrupo;
 use App\Filament\Resources\Grupos\Pages\ListGrupos;
+use App\Filament\Resources\Grupos\Pages\MisGrupos;
 use App\Filament\Resources\Grupos\Schemas\GrupoForm;
 use App\Filament\Resources\Grupos\Tables\GruposTable;
 use App\Filament\Resources\Grupos\RelationManagers\AsignadosRelationManager;
 use App\Models\Grupo;
 use BackedEnum;
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Pages\Page;
 use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -23,6 +26,7 @@ class GrupoResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 2;
     protected static UnitEnum|string|null $navigationGroup = 'Modulos';
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
 
     protected static ?string $recordTitleAttribute = 'grupos';
 
@@ -43,11 +47,19 @@ class GrupoResource extends Resource
         ];
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            ListGrupos::class,
+            MisGrupos::class,
+        ]);
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ListGrupos::route('/'),
-            // 'create' => CreateGrupo::route('/create'),
+            'mis-grupos' => MisGrupos::route('/mis-grupos'), // Descomenta esto para que exista la ruta
             'edit' => EditGrupo::route('/{record}/edit'),
         ];
     }
