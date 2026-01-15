@@ -22,7 +22,7 @@ class AsignadoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clock';
     protected static ?string $navigationLabel = 'Solicitudes';
-    protected static UnitEnum|string|null $navigationGroup = 'Modulos';
+    protected static UnitEnum|string|null $navigationGroup = 'Gestión Operativa';
     protected static ?int $navigationSort = 3;
     protected static ?string $recordTitleAttribute = 'solicitudes';
 
@@ -43,9 +43,11 @@ class AsignadoResource extends Resource
         ];
     }
 
-   public static function getNavigationBadge(): ?string
+    public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::where('id_usuario', Auth::id())->count();
+        return (string) static::getModel()::where('id_usuario', Auth::id())
+            ->where('estado_asignado', 2)
+            ->count();
     }
 
     public static function getNavigationBadgeColor(): ?string

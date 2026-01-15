@@ -25,7 +25,7 @@ class GrupoResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 2;
-    protected static UnitEnum|string|null $navigationGroup = 'Modulos';
+    protected static UnitEnum|string|null $navigationGroup = 'Gestión Operativa';
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
 
     protected static ?string $recordTitleAttribute = 'grupos';
