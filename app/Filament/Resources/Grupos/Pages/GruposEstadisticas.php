@@ -4,7 +4,11 @@ namespace App\Filament\Resources\Grupos\Pages;
 
 use App\Filament\Clusters\GruposCluster;
 use App\Filament\Resources\Grupos\GrupoResource;
+use App\Filament\Resources\Grupos\Widgets\CuentasCreadasPorMesLineChart;
 use App\Filament\Resources\Grupos\Widgets\CuentasPorIntegranteChart;
+use App\Filament\Resources\Grupos\Widgets\CuentasPorIntegrantePieChart;
+use App\Filament\Resources\Grupos\Widgets\GruposKPIs;
+use App\Filament\Resources\Grupos\Widgets\IntegrantesVsCuentasBarChart;
 use App\Models\Grupo;
 use Filament\Resources\Pages\Page;
 use BackedEnum;
@@ -28,9 +32,15 @@ class GruposEstadisticas extends Page
     protected function getHeaderWidgets(): array
     {
         return [
-            CuentasPorIntegranteChart::make([
-                'grupoId' => $this->record->id_grupo,
+            GruposKPIs::make([
+                'grupo' => $this->record,
             ]),
+
+            CuentasPorIntegranteChart::make(['grupoId' => $this->record->id_grupo]),
+            CuentasPorIntegrantePieChart::make(['grupoId' => $this->record->id_grupo]),
+            // CuentasCreadasPorMesLineChart::make(['grupoId' => $this->record->id_grupo]),
+            // IntegrantesVsCuentasBarChart::make(['grupoId' => $this->record->id_grupo]),
         ];
     }
+
 }

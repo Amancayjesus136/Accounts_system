@@ -2,23 +2,30 @@
 
 namespace App\Filament\Resources\Grupos\Widgets;
 
-use Filament\Actions\Concerns\InteractsWithRecord;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\DB;
 
-class CuentasPorIntegranteChart extends ChartWidget
+class CuentasPorIntegrantePieChart extends ChartWidget
 {
     public ?int $grupoId = null;
 
-    public function getHeading(): string { return 'Cuentas por integrante'; }
+    public function getHeading(): string
+    {
+        return 'Distribución de cuentas por integrante';
+    }
 
-    // protected int | string | array $columnSpan = 'full';
+    public static function getEmptyStateHeading(): ?string
+    {
+        return 'No hay datos de distribución para este grupo.';
+    }
 
     protected function getData(): array
     {
         if (! $this->grupoId) {
-            return ['datasets' => [], 'labels' => []];
+            return [
+                'datasets' => [],
+                'labels' => [],
+            ];
         }
 
         $data = DB::table('asignados')
@@ -26,12 +33,14 @@ class CuentasPorIntegranteChart extends ChartWidget
             ->leftJoin('cuentas', 'cuentas.id_usuario', '=', 'users.id')
             ->where('asignados.id_grupo', $this->grupoId)
             ->where('asignados.estado_asignado', 1)
-            ->select('users.name as usuario', DB::raw('COUNT(cuentas.id_cuenta) as total'))
+            ->select(
+                'users.name',
+                DB::raw('COUNT(cuentas.id_cuenta) as total')
+            )
             ->groupBy('users.name')
             ->get();
 
-        // Si la consulta no devuelve nada, mandamos datasets vacíos
-        if ($data->isEmpty()) {
+        if ($data->isEmpty() || $data->sum('total') == 0) {
             return [
                 'datasets' => [],
                 'labels' => [],
@@ -41,23 +50,19 @@ class CuentasPorIntegranteChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Total de cuentas',
+                    'label' => 'Cuentas',
                     'data' => $data->pluck('total')->toArray(),
-                    'backgroundColor' => '#3b82f6',
+                    'backgroundColor' => [
+                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
+                    ],
                 ],
             ],
-            'labels' => $data->pluck('usuario')->toArray(),
+            'labels' => $data->pluck('name')->toArray(),
         ];
-    }
-
-    public static function getEmptyStateHeading(): ?string
-    {
-        return 'No hay integrantes o cuentas asignadas en este grupo.';
     }
 
     protected function getType(): string
     {
-        return 'bar';
+        return 'pie';
     }
 }
-
