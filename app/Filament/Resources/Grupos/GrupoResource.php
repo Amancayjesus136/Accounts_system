@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Grupos;
 
 use App\Filament\Resources\Grupos\Pages\CreateGrupo;
 use App\Filament\Resources\Grupos\Pages\EditGrupo;
+use App\Filament\Resources\Grupos\Pages\GruposChart;
+use App\Filament\Resources\Grupos\Pages\GruposEstadisticas;
 use App\Filament\Resources\Grupos\Pages\ListGrupos;
 use App\Filament\Resources\Grupos\Pages\MisGrupos;
 use App\Filament\Resources\Grupos\Schemas\GrupoForm;
@@ -29,6 +31,11 @@ class GrupoResource extends Resource
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
 
     protected static ?string $recordTitleAttribute = 'grupos';
+
+    public static function getRecordRouteKeyName(): string
+    {
+        return 'id_grupo';
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -61,6 +68,7 @@ class GrupoResource extends Resource
             'index' => ListGrupos::route('/'),
             'mis-grupos' => MisGrupos::route('/mis-grupos'),
             'edit' => EditGrupo::route('/{record}/edit'),
+            'estadisticas' => GruposEstadisticas::route('/{record}/estadisticas'),
         ];
     }
 }

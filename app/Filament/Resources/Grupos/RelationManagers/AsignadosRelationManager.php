@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\Grupos\RelationManagers;
 
+use App\Filament\Resources\Grupos\Pages\GruposEstadisticas;
 use App\Models\User;
+use App\Filament\Resources\Grupos\Widgets\CuentasPorIntegranteChart;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Filament\Tables; // Importante para acceder a Tables\Actions
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -24,50 +24,58 @@ class AsignadosRelationManager extends RelationManager
     // public function getTabs(): array
     // {
     //     return [
-    //         // 'todos' => Tab::make('Todos')
-    //         //     ->badge($this->getOwnerRecord()->asignados()->count()),
-
     //         'integrantes' => Tab::make('Integrantes')
-    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 1))
-    //             ->icon('heroicon-m-user-group')
-    //             ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 1)->count())
-    //             ->badgeColor('success'),
+    //             ->icon('heroicon-o-user-group')
+    //             ->modifyQueryUsing(
+    //                 fn (Builder $query) => $query->where('estado_asignado', 1)
+    //             ),
 
     //         'pendientes' => Tab::make('Pendientes')
-    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 2))
-    //             ->icon('heroicon-m-clock')
-    //             ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 2)->count())
-    //             ->badgeColor('warning'),
+    //             ->icon('heroicon-o-clock')
+    //             ->modifyQueryUsing(
+    //                 fn (Builder $query) => $query->where('estado_asignado', 2)
+    //             ),
 
     //         'rechazados' => Tab::make('Rechazados')
-    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 0))
-    //             ->icon('heroicon-m-x-circle')
-    //             ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 0)->count())
-    //             ->badgeColor('danger'),
+    //             ->icon('heroicon-o-x-circle')
+    //             ->modifyQueryUsing(
+    //                 fn (Builder $query) => $query->where('estado_asignado', 0)
+    //             ),
     //     ];
     // }
 
+    public function getHeaderWidgets(): array
+    {
+        if ($this->getActiveTab() !== 'estadisticas') {
+            return [];
+        }
+
+        return [
+            CuentasPorIntegranteChart::class,
+        ];
+    }
+
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->schema([
-                Select::make('id_usuario')
-                    ->label('Usuario')
-                    ->columnSpanFull()
-                    ->searchable()
-                    ->required()
-                    ->getSearchResultsUsing(function (string $search, RelationManager $livewire) {
-                        $usuariosAsignados = $livewire->getOwnerRecord()
-                            ->asignados()
-                            ->pluck('id_usuario');
+        return $schema->schema([
+            Select::make('id_usuario')
+                ->label('Usuario')
+                ->searchable()
+                ->required()
+                ->getSearchResultsUsing(function (string $search, RelationManager $livewire) {
+                    $usuariosAsignados = $livewire->getOwnerRecord()
+                        ->asignados()
+                        ->pluck('id_usuario');
 
-                        return User::where('email', 'like', "%{$search}%")
-                            ->whereNotIn('id', $usuariosAsignados)
-                            ->limit(50)
-                            ->pluck('email', 'id');
-                    })
-                    ->getOptionLabelUsing(fn ($value): ?string => User::find($value)?->email),
-            ]);
+                    return User::where('email', 'like', "%{$search}%")
+                        ->whereNotIn('id', $usuariosAsignados)
+                        ->limit(50)
+                        ->pluck('email', 'id');
+                })
+                ->getOptionLabelUsing(
+                    fn ($value) => User::find($value)?->email
+                ),
+        ]);
     }
 
     public function table(Table $table): Table
@@ -75,78 +83,63 @@ class AsignadosRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id_usuario')
             ->columns([
-                TextColumn::make('usuario.name')->label('Nombre de integrante')->searchable(),
-                TextColumn::make('usuario.email')->label('Correo')->searchable(),
+                TextColumn::make('usuario.name')
+                    ->label('Nombre')
+                    ->searchable(),
+
+                TextColumn::make('usuario.email')
+                    ->label('Correo')
+                    ->searchable(),
+
                 TextColumn::make('estado_asignado')
-                    ->label('Estado')
                     ->badge()
-                    ->formatStateUsing(fn (int $state): string => match ($state) {
+                    ->formatStateUsing(fn (int $state) => match ($state) {
                         1 => 'Integrante',
                         2 => 'Pendiente',
                         0 => 'Rechazado',
-                        default => 'Desconocido',
                     })
-                    ->color(fn (int $state): string => match ($state) {
+                    ->color(fn (int $state) => match ($state) {
                         1 => 'success',
                         2 => 'warning',
                         0 => 'danger',
-                        default => 'gray',
-                    })
-                    ->icon(fn (int $state): string => match ($state) {
-                        1 => 'heroicon-o-user',
-                        2 => 'heroicon-o-clock',
-                        0 => 'heroicon-o-x-circle',
-                        default => 'heroicon-o-question-mark-circle',
-                    })
-                    ->sortable(),
+                    }),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->modalWidth('md')
-                    ->mutateFormDataUsing(function (array $data): array {
-                        return $this->mutateFormDataBeforeCreate($data);
-                    }),
+                    ->mutateFormDataUsing(
+                        fn (array $data) => $this->mutateFormDataBeforeCreate($data)
+                    ),
+
+                Action::make('estadisticas')
+                    ->label('Estadísticas')
+                    ->icon('heroicon-o-chart-bar')
+                    ->url(fn () => GruposEstadisticas::getUrl([
+                        'record' => $this->getOwnerRecord()->getKey(),
+                    ])),
+
             ])
             ->filters([
                 SelectFilter::make('estado_asignado')
-                    ->label('Estado')
                     ->options([
                         1 => 'Integrante',
                         2 => 'Pendiente',
                         0 => 'Rechazado',
                     ]),
-            ])
-            ->actions([
-                // EditAction::make()
-                //     ->modalWidth('md')
-                //     ->mutateFormDataUsing(function (array $data): array {
-                //         return $this->mutateFormDataBeforeCreate($data);
-                //     }),
-                // DeleteAction::make(),
             ]);
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data = $this->setEstadoPorDefecto($data);
+        $data['estado_asignado'] = 2;
 
-        $usuarioDestino = User::find($data['id_usuario']);
-
-        if ($usuarioDestino) {
+        if ($usuario = User::find($data['id_usuario'])) {
             Notification::make()
                 ->title('Asignación de Grupo')
-                ->body("Has sido asignado a un nuevo grupo.")
-                ->icon('heroicon-o-user-group')
+                ->body('Has sido asignado a un nuevo grupo.')
                 ->success()
-                ->sendToDatabase($usuarioDestino);
+                ->sendToDatabase($usuario);
         }
 
-        return $data;
-    }
-
-    private function setEstadoPorDefecto(array $data): array
-    {
-        $data['estado_asignado'] = 2;
         return $data;
     }
 }
