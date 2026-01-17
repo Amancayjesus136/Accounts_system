@@ -4,11 +4,14 @@ namespace App\Filament\Resources\Asignados\Tables;
 
 use App\Models\User;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Notifications\Collection;
 use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +22,7 @@ class AsignadosTable
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->where('id_usuario', Auth::id()))
+            ->recordUrl(null)
             ->columns([
               TextColumn::make('grupo.owner.name')
                 ->label('Nombre del solicitante')
@@ -50,10 +54,19 @@ class AsignadosTable
                         default => 'heroicon-o-question-mark-circle',
                     }),
                 TextColumn::make('created_at')
-                    ->label('Asignado el')
+                    ->label('Fecha de solicitud')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
+                    // ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('estado_asignado')
+                    ->label('Estado')
+                    ->options([
+                        1 => 'Aceptado',
+                        2 => 'Pendiente',
+                        0 => 'Rechazado',
+                    ]),
             ])
             ->actions([
                 Action::make('aceptar')
@@ -117,9 +130,18 @@ class AsignadosTable
                     }),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // BulkActionGroup::make([
+                //     DeleteBulkAction::make()
+                //     ->label('Eliminar Seleccionados')
+                //     ->icon('heroicon-o-trash')
+                //     ->requiresConfirmation()
+                //     ->color('danger')
+                //     ->action(function (BulkAction $action, Collection $records) {
+                //         $count = $records->count();
+                //         $records->each->delete();
+                //         $action->notify('success', "{$count} asignaciones eliminadas correctamente.");
+                //     }),
+                // ]),
             ]);
     }
 }

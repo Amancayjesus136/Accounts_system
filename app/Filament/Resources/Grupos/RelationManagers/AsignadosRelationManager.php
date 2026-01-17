@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables; // Importante para acceder a Tables\Actions
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -20,31 +21,31 @@ class AsignadosRelationManager extends RelationManager
 {
     protected static string $relationship = 'asignados';
 
-    public function getTabs(): array
-    {
-        return [
-            // 'todos' => Tab::make('Todos')
-            //     ->badge($this->getOwnerRecord()->asignados()->count()),
+    // public function getTabs(): array
+    // {
+    //     return [
+    //         // 'todos' => Tab::make('Todos')
+    //         //     ->badge($this->getOwnerRecord()->asignados()->count()),
 
-            'integrantes' => Tab::make('Integrantes')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 1))
-                ->icon('heroicon-m-user-group')
-                ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 1)->count())
-                ->badgeColor('success'),
+    //         'integrantes' => Tab::make('Integrantes')
+    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 1))
+    //             ->icon('heroicon-m-user-group')
+    //             ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 1)->count())
+    //             ->badgeColor('success'),
 
-            'pendientes' => Tab::make('Pendientes')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 2))
-                ->icon('heroicon-m-clock')
-                ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 2)->count())
-                ->badgeColor('warning'),
+    //         'pendientes' => Tab::make('Pendientes')
+    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 2))
+    //             ->icon('heroicon-m-clock')
+    //             ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 2)->count())
+    //             ->badgeColor('warning'),
 
-            'rechazados' => Tab::make('Rechazados')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 0))
-                ->icon('heroicon-m-x-circle')
-                ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 0)->count())
-                ->badgeColor('danger'),
-        ];
-    }
+    //         'rechazados' => Tab::make('Rechazados')
+    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('estado_asignado', 0))
+    //             ->icon('heroicon-m-x-circle')
+    //             ->badge($this->getOwnerRecord()->asignados()->where('estado_asignado', 0)->count())
+    //             ->badgeColor('danger'),
+    //     ];
+    // }
 
     public function form(Schema $schema): Schema
     {
@@ -106,13 +107,22 @@ class AsignadosRelationManager extends RelationManager
                         return $this->mutateFormDataBeforeCreate($data);
                     }),
             ])
+            ->filters([
+                SelectFilter::make('estado_asignado')
+                    ->label('Estado')
+                    ->options([
+                        1 => 'Integrante',
+                        2 => 'Pendiente',
+                        0 => 'Rechazado',
+                    ]),
+            ])
             ->actions([
-                EditAction::make()
-                    ->modalWidth('md')
-                    ->mutateFormDataUsing(function (array $data): array {
-                        return $this->mutateFormDataBeforeCreate($data);
-                    }),
-                DeleteAction::make(),
+                // EditAction::make()
+                //     ->modalWidth('md')
+                //     ->mutateFormDataUsing(function (array $data): array {
+                //         return $this->mutateFormDataBeforeCreate($data);
+                //     }),
+                // DeleteAction::make(),
             ]);
     }
 

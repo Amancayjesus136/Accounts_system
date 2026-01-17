@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('cuentas', function (Blueprint $table) {
             $table->id('id_cuenta');
             $table->bigInteger('id_usuario');
-            $table->bigInteger('id_grupo');
             $table->bigInteger('id_plataforma');
+            $table->bigInteger('id_visibilidad');
             $table->boolean('verificacion');
             $table->text('descripcion');
             $table->integer('estado_cuenta');

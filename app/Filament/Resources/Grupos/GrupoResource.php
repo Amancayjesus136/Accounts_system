@@ -59,7 +59,7 @@ class GrupoResource extends Resource
     {
         return [
             'index' => ListGrupos::route('/'),
-            'mis-grupos' => MisGrupos::route('/mis-grupos'), // Descomenta esto para que exista la ruta
+            'mis-grupos' => MisGrupos::route('/mis-grupos'),
             'edit' => EditGrupo::route('/{record}/edit'),
         ];
     }
