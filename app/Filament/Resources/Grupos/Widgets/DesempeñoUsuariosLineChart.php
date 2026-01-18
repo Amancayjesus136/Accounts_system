@@ -4,14 +4,20 @@ namespace App\Filament\Resources\Grupos\Widgets;
 
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
+use App\Models\Grupo;
 
-class CuentasPorIntegranteChart extends ChartWidget
+class DesempeñoUsuariosLineChart extends ChartWidget
 {
     public ?int $grupoId = null;
 
     public function getHeading(): string
     {
-        return 'Cuentas por integrante (Incluye Propietario)';
+        return 'Comparativa de cuentas por usuario';
+    }
+
+    public static function getEmptyStateHeading(): ?string
+    {
+        return 'No hay usuarios o cuentas registradas en este grupo.';
     }
 
     protected function getData(): array
@@ -20,18 +26,23 @@ class CuentasPorIntegranteChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        // 1. Unificamos al dueño del grupo y a los integrantes asignados
+        /**
+         * 1. Definimos quiénes son todos los participantes del grupo:
+         * El dueño del grupo + los integrantes asignados.
+         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // Propietario
+            ->select('id_user as user_id') // El dueño
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Asignados
+                    ->select('id_usuario as user_id') // Los asignados
             );
 
-        // 2. Contamos las cuentas cruzando con la lista de participantes
+        /**
+         * 2. Ahora contamos las cuentas de todos esos participantes
+         */
         $data = DB::table('users')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('users.id', '=', 'participantes.user_id');
@@ -45,12 +56,8 @@ class CuentasPorIntegranteChart extends ChartWidget
             ->orderByDesc('total')
             ->get();
 
-        // Si no hay datos o todos están en cero, activamos el estado vacío
         if ($data->isEmpty() || $data->sum('total') == 0) {
-            return [
-                'datasets' => [],
-                'labels' => [],
-            ];
+            return ['datasets' => [], 'labels' => []];
         }
 
         return [
@@ -58,21 +65,21 @@ class CuentasPorIntegranteChart extends ChartWidget
                 [
                     'label' => 'Total de cuentas',
                     'data' => $data->pluck('total')->toArray(),
-                    'backgroundColor' => '#3b82f6',
+                    'borderColor' => '#10b981',
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.3,
+                    'pointRadius' => 5,
+                    'pointBackgroundColor' => '#10b981',
                 ],
             ],
             'labels' => $data->pluck('usuario')->toArray(),
         ];
     }
 
-    public static function getEmptyStateHeading(): ?string
-    {
-        return 'No hay integrantes o cuentas registradas en este grupo.';
-    }
-
     protected function getType(): string
     {
-        return 'bar';
+        return 'line';
     }
 
     protected function getOptions(): array
@@ -81,9 +88,7 @@ class CuentasPorIntegranteChart extends ChartWidget
             'scales' => [
                 'y' => [
                     'beginAtZero' => true,
-                    'ticks' => [
-                        'stepSize' => 1,
-                    ],
+                    'ticks' => ['stepSize' => 1],
                 ],
             ],
         ];

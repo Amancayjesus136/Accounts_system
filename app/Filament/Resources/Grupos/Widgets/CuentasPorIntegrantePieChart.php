@@ -11,12 +11,12 @@ class CuentasPorIntegrantePieChart extends ChartWidget
 
     public function getHeading(): string
     {
-        return 'Distribución de cuentas por integrante';
+        return 'Distribución de cuentas';
     }
 
     public static function getEmptyStateHeading(): ?string
     {
-        return 'No hay datos de distribución para este grupo.';
+        return 'No hay datos de distribución para los miembros de este grupo.';
     }
 
     protected function getData(): array
@@ -28,11 +28,27 @@ class CuentasPorIntegrantePieChart extends ChartWidget
             ];
         }
 
-        $data = DB::table('asignados')
-            ->join('users', 'users.id', '=', 'asignados.id_usuario')
+        /**
+         * 1. Unificamos al dueño del grupo y a los integrantes asignados
+         */
+        $participantesQuery = DB::table('grupos')
+            ->where('id_grupo', $this->grupoId)
+            ->select('id_user as user_id') // Propietario
+            ->union(
+                DB::table('asignados')
+                    ->where('id_grupo', $this->grupoId)
+                    ->where('estado_asignado', 1)
+                    ->select('id_usuario as user_id') // Asignados
+            );
+
+        /**
+         * 2. Obtenemos los totales cruzando con la lista unificada
+         */
+        $data = DB::table('users')
+            ->joinSub($participantesQuery, 'participantes', function ($join) {
+                $join->on('users.id', '=', 'participantes.user_id');
+            })
             ->leftJoin('cuentas', 'cuentas.id_usuario', '=', 'users.id')
-            ->where('asignados.id_grupo', $this->grupoId)
-            ->where('asignados.estado_asignado', 1)
             ->select(
                 'users.name',
                 DB::raw('COUNT(cuentas.id_cuenta) as total')
@@ -40,6 +56,7 @@ class CuentasPorIntegrantePieChart extends ChartWidget
             ->groupBy('users.name')
             ->get();
 
+        // Si no hay datos o todos los participantes tienen 0 cuentas
         if ($data->isEmpty() || $data->sum('total') == 0) {
             return [
                 'datasets' => [],
@@ -53,7 +70,13 @@ class CuentasPorIntegrantePieChart extends ChartWidget
                     'label' => 'Cuentas',
                     'data' => $data->pluck('total')->toArray(),
                     'backgroundColor' => [
-                        '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
+                        '#3b82f6', // Azul
+                        '#10b981', // Verde
+                        '#f59e0b', // Naranja
+                        '#ef4444', // Rojo
+                        '#8b5cf6', // Morado
+                        '#ec4899', // Rosado
+                        '#06b6d4', // Cian
                     ],
                 ],
             ],
@@ -64,5 +87,16 @@ class CuentasPorIntegrantePieChart extends ChartWidget
     protected function getType(): string
     {
         return 'pie';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom', // Leyenda abajo para dar más espacio al gráfico
+                ],
+            ],
+        ];
     }
 }

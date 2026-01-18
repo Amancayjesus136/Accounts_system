@@ -11,12 +11,12 @@ class CuentasCreadasPorMesLineChart extends ChartWidget
 
     public function getHeading(): string
     {
-        return 'Evolución de cuentas creadas';
+        return 'Evolución mensual de cuentas';
     }
 
     public static function getEmptyStateHeading(): ?string
     {
-        return 'No hay historial de cuentas creadas para este grupo.';
+        return 'No hay historial de cuentas creadas para los miembros de este grupo.';
     }
 
     protected function getData(): array
@@ -28,13 +28,28 @@ class CuentasCreadasPorMesLineChart extends ChartWidget
             ];
         }
 
-        $data = DB::table('asignados')
-            ->join('cuentas', 'cuentas.id_usuario', '=', 'asignados.id_usuario')
-            ->where('asignados.id_grupo', $this->grupoId)
-            ->where('asignados.estado_asignado', 1)
-            ->selectRaw(
-                "to_char(cuentas.created_at, 'YYYY-MM') as mes, COUNT(*) as total"
-            )
+        /**
+         * 1. Unificamos al dueño del grupo y a los integrantes asignados
+         */
+        $participantesQuery = DB::table('grupos')
+            ->where('id_grupo', $this->grupoId)
+            ->select('id_user as user_id') // Propietario
+            ->union(
+                DB::table('asignados')
+                    ->where('id_grupo', $this->grupoId)
+                    ->where('estado_asignado', 1)
+                    ->select('id_usuario as user_id') // Integrantes
+            );
+
+        /**
+         * 2. Obtenemos el conteo agrupado por mes (YYYY-MM)
+         * Cruzamos la tabla de cuentas con nuestra lista unificada de participantes
+         */
+        $data = DB::table('cuentas')
+            ->joinSub($participantesQuery, 'participantes', function ($join) {
+                $join->on('cuentas.id_usuario', '=', 'participantes.user_id');
+            })
+            ->selectRaw("to_char(cuentas.created_at, 'YYYY-MM') as mes, COUNT(*) as total")
             ->groupBy('mes')
             ->orderBy('mes')
             ->get();
@@ -49,7 +64,7 @@ class CuentasCreadasPorMesLineChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Cuentas creadas',
+                    'label' => 'Cuentas creadas (Total Grupo)',
                     'data' => $data->pluck('total')->toArray(),
                     'fill' => 'start',
                     'tension' => 0.4,
@@ -64,5 +79,19 @@ class CuentasCreadasPorMesLineChart extends ChartWidget
     protected function getType(): string
     {
         return 'line';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'ticks' => [
+                        'stepSize' => 1,
+                    ],
+                ],
+            ],
+        ];
     }
 }

@@ -11,7 +11,7 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
 
     public function getHeading(): string
     {
-        return 'Integrantes vs Cuentas';
+        return 'Integrantes vs Cuentas (Incluye Propietario)';
     }
 
     public static function getEmptyStateHeading(): ?string
@@ -22,21 +22,36 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
     protected function getData(): array
     {
         if (! $this->grupoId) {
-            return [
-                'datasets' => [],
-                'labels' => [],
-            ];
+            return ['datasets' => [], 'labels' => []];
         }
 
-        $integrantes = DB::table('asignados')
+        /**
+         * 1. Definimos la lista única de IDs de participantes (Dueño + Asignados)
+         */
+        $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->where('estado_asignado', 1)
+            ->select('id_user as user_id')
+            ->union(
+                DB::table('asignados')
+                    ->where('id_grupo', $this->grupoId)
+                    ->where('estado_asignado', 1)
+                    ->select('id_usuario as user_id')
+            );
+
+        /**
+         * 2. Contamos el total de integrantes únicos
+         */
+        $integrantes = DB::query()
+            ->fromSub($participantesQuery, 'p')
             ->count();
 
-        $cuentas = DB::table('asignados')
-            ->join('cuentas', 'cuentas.id_usuario', '=', 'asignados.id_usuario')
-            ->where('asignados.id_grupo', $this->grupoId)
-            ->where('asignados.estado_asignado', 1)
+        /**
+         * 3. Contamos el total de cuentas de esos integrantes específicos
+         */
+        $cuentas = DB::table('cuentas')
+            ->joinSub($participantesQuery, 'p', function ($join) {
+                $join->on('cuentas.id_usuario', '=', 'p.user_id');
+            })
             ->count();
 
         if ($integrantes === 0 && $cuentas === 0) {
@@ -52,8 +67,8 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
                     'label' => 'Cantidad Total',
                     'data' => [$integrantes, $cuentas],
                     'backgroundColor' => [
-                        '#10b981',
-                        '#3b82f6',
+                        '#10b981', // Verde para integrantes
+                        '#3b82f6', // Azul para cuentas
                     ],
                 ],
             ],
@@ -74,6 +89,10 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
                     'beginAtZero' => true,
                     'ticks' => [
                         'precision' => 0,
+                    ],
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Total acumulado',
                     ],
                 ],
             ],

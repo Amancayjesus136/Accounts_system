@@ -4,9 +4,13 @@ namespace App\Filament\Resources\Grupos\Pages;
 
 use App\Filament\Clusters\GruposCluster;
 use App\Filament\Resources\Grupos\GrupoResource;
+use App\Filament\Resources\Grupos\Widgets\CuentasCreadasPorDiaLineChart;
 use App\Filament\Resources\Grupos\Widgets\CuentasCreadasPorMesLineChart;
 use App\Filament\Resources\Grupos\Widgets\CuentasPorIntegranteChart;
 use App\Filament\Resources\Grupos\Widgets\CuentasPorIntegrantePieChart;
+use App\Filament\Resources\Grupos\Widgets\DesempeñoUsuariosLineChart;
+use App\Filament\Resources\Grupos\Widgets\DistribucionCuentasBarChart;
+use App\Filament\Resources\Grupos\Widgets\DistribucionCuentasLineChart;
 use App\Filament\Resources\Grupos\Widgets\GruposKPIs;
 use App\Filament\Resources\Grupos\Widgets\IntegrantesVsCuentasBarChart;
 use App\Models\Grupo;
@@ -36,10 +40,10 @@ class GruposEstadisticas extends Page
                 'grupo' => $this->record,
             ]),
 
-            CuentasPorIntegranteChart::make(['grupoId' => $this->record->id_grupo]),
+            DesempeñoUsuariosLineChart::make(['grupoId' => $this->record->id_grupo]),
             CuentasPorIntegrantePieChart::make(['grupoId' => $this->record->id_grupo]),
-            // CuentasCreadasPorMesLineChart::make(['grupoId' => $this->record->id_grupo]),
-            // IntegrantesVsCuentasBarChart::make(['grupoId' => $this->record->id_grupo]),
+            CuentasCreadasPorDiaLineChart::make(['grupoId' => $this->record->id_grupo]),
+            CuentasCreadasPorMesLineChart::make(['grupoId' => $this->record->id_grupo]),
         ];
     }
 

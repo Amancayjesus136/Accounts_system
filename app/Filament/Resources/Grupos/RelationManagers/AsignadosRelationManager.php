@@ -113,6 +113,10 @@ class AsignadosRelationManager extends RelationManager
                 Action::make('estadisticas')
                     ->label('Estadísticas')
                     ->icon('heroicon-o-chart-bar')
+                    ->extraAttributes([
+                        'class' => 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500 border-none [&>svg]:!text-white',
+                        'style' => 'background-color: #16a34a !important; color: white !important;',
+                    ])
                     ->url(fn () => GruposEstadisticas::getUrl([
                         'record' => $this->getOwnerRecord()->getKey(),
                     ])),
