@@ -18,6 +18,16 @@ class Cuenta extends Model
         'estado_cuenta',
     ];
 
+    public function plataforma()
+    {
+        return $this->belongsTo(Plataforma::class, 'id_plataforma');
+    }
+
+    public function visibilidad()
+    {
+        return $this->belongsTo(Visibilidad::class, 'id_visibilidad');
+    }
+
     public function cuentaUsuario()
     {
         return $this->hasOne(CuentaUsuario::class, 'id_cuenta', 'id_cuenta');
