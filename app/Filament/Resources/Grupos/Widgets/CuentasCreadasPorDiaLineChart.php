@@ -25,22 +25,16 @@ class CuentasCreadasPorDiaLineChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        /**
-         * 1. Unificamos al dueño del grupo y a los integrantes asignados
-         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // Propietario
+            ->select('id_user as user_id')
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Integrantes
+                    ->select('id_usuario as user_id')
             );
 
-        /**
-         * 2. Obtener datos cruzando con la lista unificada y filtrando por fecha
-         */
         $rawData = DB::table('users')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('users.id', '=', 'participantes.user_id');
@@ -60,10 +54,8 @@ class CuentasCreadasPorDiaLineChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        // 3. Generar etiquetas maestras de días (Eje X)
         $labels = $rawData->pluck('fecha')->unique()->sort()->values()->toArray();
 
-        // 4. Construir datasets por usuario (Dueño e Integrantes)
         $datasets = [];
         $usuarios = $rawData->groupBy('usuario');
         $colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];

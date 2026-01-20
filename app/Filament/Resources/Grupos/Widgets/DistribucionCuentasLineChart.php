@@ -25,22 +25,16 @@ class DistribucionCuentasLineChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        /**
-         * 1. Unificamos al dueño del grupo y a los integrantes asignados
-         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // El dueño
+            ->select('id_user as user_id')
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Los asignados
+                    ->select('id_usuario as user_id')
             );
 
-        /**
-         * 2. Obtenemos los datos cruzando con la lista unificada
-         */
         $rawData = DB::table('users')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('users.id', '=', 'participantes.user_id');
@@ -59,10 +53,8 @@ class DistribucionCuentasLineChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        // 3. Eje X: Fechas únicas detectadas
         $labels = $rawData->pluck('fecha')->unique()->sort()->values()->toArray();
 
-        // 4. Generar una línea por cada usuario (incluyendo al dueño)
         $datasets = [];
         $usuarios = $rawData->groupBy('usuario');
         $colors = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4'];
@@ -73,7 +65,6 @@ class DistribucionCuentasLineChart extends ChartWidget
             $puntos = [];
 
             foreach ($labels as $fecha) {
-                // Si el usuario no tiene registros ese día, marcamos 0 para no romper la línea
                 $puntos[] = $dataPorFecha->get($fecha, 0);
             }
 

@@ -25,9 +25,6 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        /**
-         * 1. Definimos la lista única de IDs de participantes (Dueño + Asignados)
-         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
             ->select('id_user as user_id')
@@ -38,16 +35,10 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
                     ->select('id_usuario as user_id')
             );
 
-        /**
-         * 2. Contamos el total de integrantes únicos
-         */
         $integrantes = DB::query()
             ->fromSub($participantesQuery, 'p')
             ->count();
 
-        /**
-         * 3. Contamos el total de cuentas de esos integrantes específicos
-         */
         $cuentas = DB::table('cuentas')
             ->joinSub($participantesQuery, 'p', function ($join) {
                 $join->on('cuentas.id_usuario', '=', 'p.user_id');
@@ -67,8 +58,8 @@ class IntegrantesVsCuentasBarChart extends ChartWidget
                     'label' => 'Cantidad Total',
                     'data' => [$integrantes, $cuentas],
                     'backgroundColor' => [
-                        '#10b981', // Verde para integrantes
-                        '#3b82f6', // Azul para cuentas
+                        '#10b981',
+                        '#3b82f6',
                     ],
                 ],
             ],

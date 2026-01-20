@@ -25,9 +25,6 @@ class DistribucionCuentasBarChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        /**
-         * 1. Primero obtenemos el total de cuentas que tiene cada usuario del grupo
-         */
         $countsPerUser = DB::table('asignados')
             ->join('users', 'users.id', '=', 'asignados.id_usuario')
             ->leftJoin('cuentas', 'cuentas.id_usuario', '=', 'users.id')
@@ -41,13 +38,9 @@ class DistribucionCuentasBarChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        /**
-         * 2. Agrupamos cuántos usuarios tienen la misma cantidad de cuentas
-         * Ejemplo: 5 usuarios tienen 2 cuentas, 3 usuarios tienen 10 cuentas.
-         */
         $distribution = $countsPerUser->groupBy('total_cuentas')
             ->map(fn ($group) => $group->count())
-            ->sortKeys(); // Ordenamos por cantidad de cuentas (0, 1, 2, 3...)
+            ->sortKeys();
 
         return [
             'datasets' => [
@@ -58,7 +51,6 @@ class DistribucionCuentasBarChart extends ChartWidget
                     'borderColor' => '#7c3aed',
                 ],
             ],
-            // Los labels serán: "0 cuentas", "1 cuenta", "2 cuentas", etc.
             'labels' => $distribution->keys()->map(fn($key) => $key . ($key == 1 ? ' cuenta' : ' cuentas'))->toArray(),
         ];
     }

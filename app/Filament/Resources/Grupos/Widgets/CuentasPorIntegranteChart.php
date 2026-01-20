@@ -20,18 +20,16 @@ class CuentasPorIntegranteChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        // 1. Unificamos al dueño del grupo y a los integrantes asignados
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // Propietario
+            ->select('id_user as user_id')
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Asignados
+                    ->select('id_usuario as user_id')
             );
 
-        // 2. Contamos las cuentas cruzando con la lista de participantes
         $data = DB::table('users')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('users.id', '=', 'participantes.user_id');
@@ -45,7 +43,6 @@ class CuentasPorIntegranteChart extends ChartWidget
             ->orderByDesc('total')
             ->get();
 
-        // Si no hay datos o todos están en cero, activamos el estado vacío
         if ($data->isEmpty() || $data->sum('total') == 0) {
             return [
                 'datasets' => [],

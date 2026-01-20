@@ -28,22 +28,16 @@ class CuentasPorIntegrantePieChart extends ChartWidget
             ];
         }
 
-        /**
-         * 1. Unificamos al dueño del grupo y a los integrantes asignados
-         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // Propietario
+            ->select('id_user as user_id')
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Asignados
+                    ->select('id_usuario as user_id')
             );
 
-        /**
-         * 2. Obtenemos los totales cruzando con la lista unificada
-         */
         $data = DB::table('users')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('users.id', '=', 'participantes.user_id');
@@ -56,7 +50,6 @@ class CuentasPorIntegrantePieChart extends ChartWidget
             ->groupBy('users.name')
             ->get();
 
-        // Si no hay datos o todos los participantes tienen 0 cuentas
         if ($data->isEmpty() || $data->sum('total') == 0) {
             return [
                 'datasets' => [],
@@ -70,13 +63,13 @@ class CuentasPorIntegrantePieChart extends ChartWidget
                     'label' => 'Cuentas',
                     'data' => $data->pluck('total')->toArray(),
                     'backgroundColor' => [
-                        '#3b82f6', // Azul
-                        '#10b981', // Verde
-                        '#f59e0b', // Naranja
-                        '#ef4444', // Rojo
-                        '#8b5cf6', // Morado
-                        '#ec4899', // Rosado
-                        '#06b6d4', // Cian
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#8b5cf6',
+                        '#ec4899',
+                        '#06b6d4',
                     ],
                 ],
             ],
@@ -94,7 +87,7 @@ class CuentasPorIntegrantePieChart extends ChartWidget
         return [
             'plugins' => [
                 'legend' => [
-                    'position' => 'bottom', // Leyenda abajo para dar más espacio al gráfico
+                    'position' => 'bottom',
                 ],
             ],
         ];

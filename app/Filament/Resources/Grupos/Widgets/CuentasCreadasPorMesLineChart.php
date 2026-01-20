@@ -28,23 +28,16 @@ class CuentasCreadasPorMesLineChart extends ChartWidget
             ];
         }
 
-        /**
-         * 1. Unificamos al dueño del grupo y a los integrantes asignados
-         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // Propietario
+            ->select('id_user as user_id')
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Integrantes
+                    ->select('id_usuario as user_id')
             );
 
-        /**
-         * 2. Obtenemos el conteo agrupado por mes (YYYY-MM)
-         * Cruzamos la tabla de cuentas con nuestra lista unificada de participantes
-         */
         $data = DB::table('cuentas')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('cuentas.id_usuario', '=', 'participantes.user_id');

@@ -26,23 +26,16 @@ class DesempeñoUsuariosLineChart extends ChartWidget
             return ['datasets' => [], 'labels' => []];
         }
 
-        /**
-         * 1. Definimos quiénes son todos los participantes del grupo:
-         * El dueño del grupo + los integrantes asignados.
-         */
         $participantesQuery = DB::table('grupos')
             ->where('id_grupo', $this->grupoId)
-            ->select('id_user as user_id') // El dueño
+            ->select('id_user as user_id')
             ->union(
                 DB::table('asignados')
                     ->where('id_grupo', $this->grupoId)
                     ->where('estado_asignado', 1)
-                    ->select('id_usuario as user_id') // Los asignados
+                    ->select('id_usuario as user_id')
             );
 
-        /**
-         * 2. Ahora contamos las cuentas de todos esos participantes
-         */
         $data = DB::table('users')
             ->joinSub($participantesQuery, 'participantes', function ($join) {
                 $join->on('users.id', '=', 'participantes.user_id');
