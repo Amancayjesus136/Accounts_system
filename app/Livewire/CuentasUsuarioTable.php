@@ -182,7 +182,7 @@ class CuentasUsuarioTable extends Component implements HasForms, HasTable, HasAc
                         2 => 'Privado',
                     ]),
             ])
-            ->paginated(false);
+            ->paginated(true);
     }
 
     public function render()
