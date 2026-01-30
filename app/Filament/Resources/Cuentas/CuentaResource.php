@@ -23,7 +23,7 @@ class CuentaResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'cuentas';
     protected static UnitEnum|string|null $navigationGroup = 'Gestión Operativa';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
     public static function form(Schema $schema): Schema
     {
         return CuentaForm::configure($schema);
