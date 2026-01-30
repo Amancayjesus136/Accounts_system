@@ -143,65 +143,66 @@ class AsignadosRelationManager extends RelationManager
                     ->modalCancelActionLabel('Cerrar')
 
                     ->hidden(fn ($record) => $record->estado_asignado === 0)
+                    ->modalContent(fn ($record) => view('components.modal-cuentas', ['record' => $record])),
 
-                    ->infolist([
-                        RepeatableEntry::make('cuentas_filtradas')
-                            ->hiddenLabel()
-                            ->state(function ($record) {
-                                if ($record->estado_asignado === 1) {
-                                    return $record->usuario?->cuentas;
-                                }
+                    // ->infolist([
+                    //     RepeatableEntry::make('cuentas_filtradas')
+                    //         ->hiddenLabel()
+                    //         ->state(function ($record) {
+                    //             if ($record->estado_asignado === 1) {
+                    //                 return $record->usuario?->cuentas;
+                    //             }
 
-                                return [];
-                            })
-                            ->placeholder('Este usuario tiene cuentas en proceso de aceptación')
-                            ->schema([
-                                Grid::make(3)
-                                    ->schema([
-                                        // TextEntry::make('plataforma.grupo_plataforma')
-                                        //     ->label('Grupo')
-                                        //     ->icon('heroicon-m-rectangle-group'),
+                    //             return [];
+                    //         })
+                    //         ->placeholder('Este usuario tiene cuentas en proceso de aceptación')
+                    //         ->schema([
+                    //             Grid::make(3)
+                    //                 ->schema([
+                    //                     // TextEntry::make('plataforma.grupo_plataforma')
+                    //                     //     ->label('Grupo')
+                    //                     //     ->icon('heroicon-m-rectangle-group'),
 
-                                        // TextEntry::make('plataforma.entidad_plataforma')
-                                        //     ->label('Entidad')
-                                        //     ->icon('heroicon-m-building-office'),
+                    //                     // TextEntry::make('plataforma.entidad_plataforma')
+                    //                     //     ->label('Entidad')
+                    //                     //     ->icon('heroicon-m-building-office'),
 
-                                        TextEntry::make('plataforma.nombre_plataforma')
-                                            ->label('Plataforma')
-                                            ->weight('bold')
-                                            ->icon('heroicon-m-computer-desktop'),
+                    //                     TextEntry::make('plataforma.nombre_plataforma')
+                    //                         ->label('Plataforma')
+                    //                         ->weight('bold')
+                    //                         ->icon('heroicon-m-computer-desktop'),
 
-                                        TextEntry::make('visibilidad.tipo_visibilidad')
-                                            ->label('Visibilidad')
-                                            ->badge()
-                                            ->color(fn (string $state): string => match ($state) {
-                                                'Publico', 'Público' => 'success',
-                                                'Privado' => 'danger',
-                                                default => 'gray',
-                                            })
-                                            ->icon(fn (string $state): string => match ($state) {
-                                                'Publico', 'Público' => 'heroicon-m-eye',
-                                                'Privado' => 'heroicon-m-eye-slash',
-                                                default => 'heroicon-m-question-mark-circle',
-                                            }),
+                    //                     TextEntry::make('visibilidad.tipo_visibilidad')
+                    //                         ->label('Visibilidad')
+                    //                         ->badge()
+                    //                         ->color(fn (string $state): string => match ($state) {
+                    //                             'Publico', 'Público' => 'success',
+                    //                             'Privado' => 'danger',
+                    //                             default => 'gray',
+                    //                         })
+                    //                         ->icon(fn (string $state): string => match ($state) {
+                    //                             'Publico', 'Público' => 'heroicon-m-eye',
+                    //                             'Privado' => 'heroicon-m-eye-slash',
+                    //                             default => 'heroicon-m-question-mark-circle',
+                    //                         }),
 
-                                        // TextEntry::make('estado_cuenta')
-                                        //     ->label('Estado')
-                                        //     ->badge()
-                                        //     ->formatStateUsing(fn ($state) => $state ? 'Activa' : 'Inactiva')
-                                        //     ->color(fn ($state) => $state ? 'success' : 'danger')
-                                        //     ->icon(fn ($state) => $state ? 'heroicon-m-check-circle' : 'heroicon-m-x-circle'),
+                    //                     // TextEntry::make('estado_cuenta')
+                    //                     //     ->label('Estado')
+                    //                     //     ->badge()
+                    //                     //     ->formatStateUsing(fn ($state) => $state ? 'Activa' : 'Inactiva')
+                    //                     //     ->color(fn ($state) => $state ? 'success' : 'danger')
+                    //                     //     ->icon(fn ($state) => $state ? 'heroicon-m-check-circle' : 'heroicon-m-x-circle'),
 
-                                        TextEntry::make('verificacion')
-                                            ->label('Verificación')
-                                            ->badge()
-                                            ->formatStateUsing(fn ($state) => $state ? 'Verificada' : 'No verificada')
-                                            ->color(fn ($state) => $state ? 'info' : 'gray')
-                                            ->icon(fn ($state) => $state ? 'heroicon-m-shield-check' : 'heroicon-m-shield-exclamation'),
-                                    ]),
-                            ])
-                            ->columns(1),
-                    ])
+                    //                     TextEntry::make('verificacion')
+                    //                         ->label('Verificación')
+                    //                         ->badge()
+                    //                         ->formatStateUsing(fn ($state) => $state ? 'Verificada' : 'No verificada')
+                    //                         ->color(fn ($state) => $state ? 'info' : 'gray')
+                    //                         ->icon(fn ($state) => $state ? 'heroicon-m-shield-check' : 'heroicon-m-shield-exclamation'),
+                    //                 ]),
+                    //         ])
+                    //         ->columns(1),
+                    // ])
                 // EditAction::make()
                 //     ->modalWidth('md')
                 //     ->mutateFormDataUsing(fn (array $data) => $this->mutateFormDataBeforeCreate($data)),
