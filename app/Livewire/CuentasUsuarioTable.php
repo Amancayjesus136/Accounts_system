@@ -14,7 +14,8 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use App\Models\Cuenta;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 class CuentasUsuarioTable extends Component implements HasForms, HasTable, HasActions
 {
@@ -26,14 +27,14 @@ class CuentasUsuarioTable extends Component implements HasForms, HasTable, HasAc
 
     public function table(Table $table): Table
     {
+        $mensajePrivacidad = 'Como es privado no se puede ver este campo. Solicita que lo conviertan en público para visualizarlo.';
+
         return $table
             ->query(function () {
                 if ($this->record->estado_asignado !== 1) {
                     return Cuenta::query()->whereRaw('1 = 0');
                 }
-
                 $usuarioId = $this->record->usuario?->id ?? $this->record->id_usuario;
-
                 return Cuenta::query()->where('id_usuario', $usuarioId);
             })
             ->columns([
@@ -63,6 +64,115 @@ class CuentasUsuarioTable extends Component implements HasForms, HasTable, HasAc
                     ->formatStateUsing(fn ($state) => $state ? 'Verificada' : 'No verificada')
                     ->color(fn ($state) => $state ? 'info' : 'gray')
                     ->icon(fn ($state) => $state ? 'heroicon-m-shield-check' : 'heroicon-m-shield-exclamation'),
+
+                TextColumn::make('cuentaUsuario.username_cuenta')
+                    ->label('Usuario')
+                    ->weight('bold')
+                    ->searchable()
+                    ->icon(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'heroicon-m-lock-closed' : (
+                            empty($state) ? 'heroicon-m-x-mark' : 'heroicon-m-user'
+                        )
+                    )
+                    ->color(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'danger' : (
+                            empty($state) ? 'gray' : null
+                        )
+                    )
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->visibilidad?->tipo_visibilidad === 'Privado' || $record->visibilidad?->id_visibilidad === 2) {
+                            return '🔒 Restringido';
+                        }
+                        if (empty($state)) {
+                            return 'Sin registro';
+                        }
+                        return $state;
+                    })
+                    ->tooltip(fn ($record) => ($record->visibilidad?->id_visibilidad === 2) ? $mensajePrivacidad : null),
+
+                TextColumn::make('cuentaUsuario.number_cuenta')
+                    ->label('Número')
+                    ->weight('bold')
+                    ->searchable()
+                    ->icon(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'heroicon-m-lock-closed' : (
+                            empty($state) ? 'heroicon-m-x-mark' : 'heroicon-m-phone'
+                        )
+                    )
+                    ->color(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'danger' : (
+                            empty($state) ? 'gray' : null
+                        )
+                    )
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->visibilidad?->tipo_visibilidad === 'Privado' || $record->visibilidad?->id_visibilidad === 2) {
+                            return '🔒 Restringido';
+                        }
+                        if (empty($state)) {
+                            return 'Sin registro';
+                        }
+                        return $state;
+                    })
+                    ->tooltip(fn ($record) => ($record->visibilidad?->id_visibilidad === 2) ? $mensajePrivacidad : null),
+
+                TextColumn::make('cuentaUsuario.email_cuenta')
+                    ->label('Email')
+                    ->weight('bold')
+                    ->searchable()
+                    ->icon(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'heroicon-m-lock-closed' : (
+                            empty($state) ? 'heroicon-m-x-mark' : 'heroicon-m-envelope'
+                        )
+                    )
+                    ->color(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'danger' : (
+                            empty($state) ? 'gray' : null
+                        )
+                    )
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->visibilidad?->tipo_visibilidad === 'Privado' || $record->visibilidad?->id_visibilidad === 2) {
+                            return '🔒 Restringido';
+                        }
+                        if (empty($state)) {
+                            return 'Sin registro';
+                        }
+                        return $state;
+                    })
+                    ->copyable(fn ($state, $record) => !($record->visibilidad?->id_visibilidad === 2) && !empty($state))
+                    ->tooltip(fn ($record) => ($record->visibilidad?->id_visibilidad === 2) ? $mensajePrivacidad : null),
+
+                TextColumn::make('cuentaUsuario.password_cuenta')
+                    ->label('Contraseña')
+                    ->weight('bold')
+                    ->icon(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? null : (
+                            empty($state) ? 'heroicon-m-x-mark' : 'heroicon-m-key'
+                        )
+                    )
+                    ->color(fn ($state, $record) =>
+                        ($record->visibilidad?->id_visibilidad === 2) ? 'danger' : (
+                            empty($state) ? 'gray' : null
+                        )
+                    )
+                    ->formatStateUsing(function ($state, $record) {
+                        $esPrivado = $record->visibilidad?->tipo_visibilidad === 'Privado' || $record->visibilidad?->id_visibilidad === 2;
+                        if ($esPrivado) {
+                            return '🔒 Restringido';
+                        }
+
+                        if (empty($state)) {
+                            return 'Sin registro';
+                        }
+
+                        try {
+                            return Crypt::decryptString($state);
+                        } catch (DecryptException $e) {
+                            return 'Error';
+                        }
+                    })
+                    ->copyable(fn ($state, $record) => !($record->visibilidad?->id_visibilidad === 2) && !empty($state))
+                    ->copyMessage('Contraseña copiada')
+                    ->tooltip(fn ($record) => ($record->visibilidad?->id_visibilidad === 2) ? $mensajePrivacidad : null),
             ])
             ->filters([
                 SelectFilter::make('id_visibilidad')

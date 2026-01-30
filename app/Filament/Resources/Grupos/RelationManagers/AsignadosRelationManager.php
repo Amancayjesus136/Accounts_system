@@ -138,7 +138,7 @@ class AsignadosRelationManager extends RelationManager
                     ->icon('heroicon-o-eye')
                     ->color('info')
                     ->modalHeading('Cuentas del usuario')
-                    ->modalWidth('5xl')
+                    ->modalWidth('7xl')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Cerrar')
 
