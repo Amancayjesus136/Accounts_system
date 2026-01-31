@@ -45,7 +45,7 @@ class TokenResource extends Resource
     {
         return [
             'index' => ListTokens::route('/'),
-            'create' => CreateToken::route('/create'),
+            // 'create' => CreateToken::route('/create'),
             'edit' => EditToken::route('/{record}/edit'),
         ];
     }

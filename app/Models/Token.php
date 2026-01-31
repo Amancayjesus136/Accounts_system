@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Token extends Model
 {
@@ -15,4 +16,14 @@ class Token extends Model
         'id_user',
         'estado_token',
     ];
+
+    public function getCreatedAgoAttribute()
+    {
+        return Carbon::parse($this->created_at)->diffForHumans();
+    }
+
+    public function getUpdatedAgoAttribute()
+    {
+        return Carbon::parse($this->updated_at)->diffForHumans();
+    }
 }
