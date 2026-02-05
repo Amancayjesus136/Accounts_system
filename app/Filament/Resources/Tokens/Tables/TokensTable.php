@@ -8,6 +8,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class TokensTable
 {
@@ -15,6 +17,7 @@ class TokensTable
     {
         return $table
             ->defaultSort('estado_token', 'desc')
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('id_user', Auth::id()))
             ->recordUrl(
                 fn ($record) => $record->estado_token === 1
                     ? TokenResource::getUrl('edit', ['record' => $record])

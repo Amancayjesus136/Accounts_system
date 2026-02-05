@@ -10,10 +10,20 @@ class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Usuario actualizada correctamente';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             DeleteAction::make(),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return static::$resource::getUrl('index');
     }
 }

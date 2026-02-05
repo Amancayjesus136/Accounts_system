@@ -19,9 +19,17 @@ class UsersTable
                 TextColumn::make('email')
                     ->label('Email address')
                     ->searchable(),
-                TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
+
+                TextColumn::make('roles.name')
+                    ->label('Rol')
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        'super_admin' => 'danger',
+                        'gerente' => 'warning',
+                        default => 'info',
+                    })
+                    ->separator(','),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

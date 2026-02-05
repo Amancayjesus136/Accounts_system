@@ -24,6 +24,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 
 class AsignadosRelationManager extends RelationManager
@@ -91,6 +92,9 @@ class AsignadosRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('id_usuario')
+            ->modifyQueryUsing(function (Builder $query) {
+                return $query->where('id_usuario', '!=', Auth::id());
+            })
             ->columns([
                 TextColumn::make('usuario.name')
                     ->label('Nombre')
