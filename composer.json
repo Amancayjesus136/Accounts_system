@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bezhansalleh/filament-shield": "^4.1",
         "codeat3/blade-elusive-icons": "^1.5",
         "codeat3/blade-simple-icons": "^8.1",
         "codeat3/blade-teeny-icons": "^1.11",
