@@ -10,6 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\RichEditor;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Crypt;
 
 class CuentaForm
@@ -29,30 +30,22 @@ class CuentaForm
                         Select::make('grupo_plataforma')
                             ->label('Grupo de plataforma')
                             ->columnSpan(4)
-                            ->options(
-                                Plataforma::query()
-                                    ->distinct()
-                                    ->pluck('grupo_plataforma', 'grupo_plataforma')
-                            )
+                            ->options(Plataforma::query()->distinct()->pluck('grupo_plataforma', 'grupo_plataforma'))
                             ->reactive()
                             ->required()
-                            ->afterStateUpdated(fn (callable $set) => [
-                                $set('entidad_plataforma', null),
-                                $set('id_plataforma', null),
-                            ]),
+                            ->hiddenOn('view')
+                            ->afterStateUpdated(function (callable $set) {
+                                $set('entidad_plataforma', null);
+                                $set('id_plataforma', null);
+                            }),
 
                         Select::make('entidad_plataforma')
                             ->label('Entidad')
                             ->columnSpan(4)
                             ->reactive()
                             ->required()
-                            ->options(fn (callable $get) =>
-                                $get('grupo_plataforma')
-                                    ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))
-                                        ->distinct()
-                                        ->pluck('entidad_plataforma', 'entidad_plataforma')
-                                    : []
-                            )
+                            ->hiddenOn('view')
+                            ->options(fn (callable $get) => $get('grupo_plataforma') ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))->distinct()->pluck('entidad_plataforma', 'entidad_plataforma') : [])
                             ->afterStateUpdated(fn (callable $set) => $set('id_plataforma', null)),
 
                         Select::make('id_plataforma')
@@ -60,53 +53,86 @@ class CuentaForm
                             ->columnSpan(4)
                             ->searchable()
                             ->required()
-                            ->options(fn (callable $get) =>
-                                $get('grupo_plataforma') && $get('entidad_plataforma')
-                                    ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))
-                                        ->where('entidad_plataforma', $get('entidad_plataforma'))
-                                        ->pluck('nombre_plataforma', 'id_plataforma')
-                                    : []
-                            )
+                            ->hiddenOn('view')
+                            ->options(fn (callable $get) => $get('grupo_plataforma') && $get('entidad_plataforma') ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))->where('entidad_plataforma', $get('entidad_plataforma'))->pluck('nombre_plataforma', 'id_plataforma') : [])
                             ->afterStateHydrated(function ($state, callable $set) {
-                                if (! $state) {
-                                    return;
-                                }
-
+                                if (!$state) return;
                                 $plataforma = Plataforma::find($state);
-
                                 if ($plataforma) {
                                     $set('grupo_plataforma', $plataforma->grupo_plataforma);
                                     $set('entidad_plataforma', $plataforma->entidad_plataforma);
                                 }
                             }),
 
+                        TextInput::make('view_plataforma')
+                            ->label('Plataforma')
+                            ->columnSpan(12)
+                            ->visibleOn('view')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->prefixIcon('heroicon-m-computer-desktop')
+                            ->formatStateUsing(fn ($record) => $record?->plataforma?->nombre_plataforma),
+
                         RichEditor::make('descripcion')
                             ->label('Descripción')
                             ->columnSpan(8)
                             ->toolbarButtons([
-                                ['bold', 'italic', 'underline'],
-                                ['alignStart', 'alignCenter', 'alignEnd'],
-                                ['undo', 'redo'],
+                                'bold', 'italic', 'underline',
+                                'alignStart', 'alignCenter', 'alignEnd',
+                                'undo', 'redo',
+                            ])
+                            ->disabledOn('view'),
+
+                        Grid::make(2)
+                            ->columnSpan(4)
+                            ->schema([
+                                Select::make('id_visibilidad')
+                                    ->label('Visibilidad')
+                                    ->options(Visibilidad::query()->where('estado_visibilidad', 1)->pluck('tipo_visibilidad', 'id_visibilidad'))
+                                    ->searchable()
+                                    ->required()
+                                    ->hiddenOn('view'),
+
+                                TextInput::make('view_visibilidad')
+                                    ->label('Visibilidad')
+                                    ->visibleOn('view')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->formatStateUsing(fn ($record) => $record->visibilidad->tipo_visibilidad)
+                                    ->prefixIcon(fn ($record) =>
+                                        in_array($record->visibilidad->tipo_visibilidad, ['Publico', 'Público'])
+                                            ? 'heroicon-m-eye'
+                                            : 'heroicon-m-eye-slash'
+                                    )
+                                    ->extraInputAttributes(fn ($record) =>
+                                        in_array($record->visibilidad->tipo_visibilidad, ['Publico', 'Público'])
+                                            ? ['class' => 'text-green-600 font-bold']
+                                            : ['class' => 'text-red-600 font-bold']
+                                    ),
+
+                                Toggle::make('verificacion')
+                                    ->label('Cuenta verificada')
+                                    ->inline(false)
+                                    ->onColor('success')
+                                    ->offColor('danger')
+                                    ->default(false)
+                                    ->hiddenOn('view'),
+
+                                TextInput::make('view_verificacion')
+                                    ->label('Verificación')
+                                    ->visibleOn('view')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->formatStateUsing(fn ($record) => $record->verificacion ? 'Verificada' : 'No verificada')
+                                    ->prefixIcon(fn ($record) =>
+                                        $record->verificacion ? 'heroicon-m-shield-check' : 'heroicon-m-shield-exclamation'
+                                    )
+                                    ->extraInputAttributes(fn ($record) =>
+                                        $record->verificacion
+                                            ? ['class' => 'text-blue-600 font-bold']
+                                            : ['class' => 'text-gray-500']
+                                    ),
                             ]),
-
-                        Select::make('id_visibilidad')
-                            ->label('Visibilidad')
-                            ->columnSpan(2)
-                            ->options(
-                                Visibilidad::query()
-                                    ->where('estado_visibilidad', 1)
-                                    ->pluck('tipo_visibilidad', 'id_visibilidad')
-                            )
-                            ->searchable()
-                            ->required(),
-
-                        Toggle::make('verificacion')
-                            ->label('Cuenta verificada')
-                            ->columnSpan(2)
-                            ->inline(false)
-                            ->onColor('success')
-                            ->offColor('danger')
-                            ->default(false),
                     ]),
 
                 Section::make('Credenciales de acceso')
@@ -133,14 +159,10 @@ class CuentaForm
                             ->required(fn (string $context) => $context === 'create')
                             ->password()
                             ->revealable()
+                            ->hiddenOn('view')
                             ->disabled(fn (string $context) =>
                                 $context === 'edit' &&
                                 ! session()->get('cuenta_validada_' . request()->route('record'), false)
-                            )
-                            ->helperText(fn (string $context) =>
-                                $context === 'edit'
-                                    ? 'Usa el botón "Ingresar Credenciales" y luego el ojito para visualizar'
-                                    : ''
                             )
                             ->dehydrated(fn (string $context, $state) => $context === 'create' || (!empty($state) && $state !== '********'))
                             ->afterStateHydrated(function ($state, callable $set) {
@@ -151,12 +173,20 @@ class CuentaForm
                                         try {
                                             $decrypted = Crypt::decryptString($cuentaUsuario->password_cuenta);
                                             $set('cuenta_usuario.password_cuenta', $decrypted);
-                                        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                                        } catch (\Exception $e) {
                                             $set('cuenta_usuario.password_cuenta', null);
                                         }
                                     }
                                 }
                             }),
+
+                        TextInput::make('view_password')
+                            ->label('Contraseña')
+                            ->visibleOn('view')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->prefixIcon('heroicon-m-lock-closed')
+                            ->formatStateUsing(fn ($state) => $state === '********' || empty($state) ? '********' : $state),
                     ]),
 
             ]);

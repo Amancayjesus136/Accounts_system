@@ -5,11 +5,13 @@ namespace App\Filament\Resources\Cuentas\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Commands\Show;
 
 class CuentasTable
 {
@@ -71,6 +73,13 @@ class CuentasTable
             ])
             ->recordActions([
                 EditAction::make()
+                    ->label('Editar')
+                    ->icon('heroicon-o-pencil')
+                    ->color('primary'),
+                ViewAction::make()
+                    ->label('Ver')
+                    ->icon('heroicon-o-eye')
+                    ->color('secondary'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

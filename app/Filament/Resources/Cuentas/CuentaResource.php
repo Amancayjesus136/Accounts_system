@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Cuentas;
 use App\Filament\Resources\Cuentas\Pages\CreateCuenta;
 use App\Filament\Resources\Cuentas\Pages\EditCuenta;
 use App\Filament\Resources\Cuentas\Pages\ListCuentas;
+use App\Filament\Resources\Cuentas\Pages\ViewCuenta;
 use App\Filament\Resources\Cuentas\Schemas\CuentaForm;
 use App\Filament\Resources\Cuentas\Tables\CuentasTable;
 use App\Models\Cuenta;
@@ -46,6 +47,7 @@ class CuentaResource extends Resource
         return [
             'index' => ListCuentas::route('/'),
             'create' => CreateCuenta::route('/create'),
+            'view' => ViewCuenta::route('/{record}'),
             'edit' => EditCuenta::route('/{record}/edit'),
         ];
     }
