@@ -26,7 +26,7 @@ class TokenForm
 
                         Select::make('time_token')
                             ->label('Tiempo del token')
-                            ->required()
+                            ->disabled()
                             ->options([
                                 1   => '1 día',
                                 7   => '7 días',

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Cuentas\Pages;
 
 use App\Filament\Resources\Cuentas\CuentaResource;
 use App\Models\CuentaUsuario;
+use App\Models\Token;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\TextInput;
@@ -12,6 +13,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class EditCuenta extends EditRecord
 {
@@ -101,7 +103,12 @@ class EditCuenta extends EditRecord
                         ->required(),
                 ])
                 ->action(function (array $data) {
-                    if ($data['codigo'] === '654321') {
+                    $tokenValido = Token::where('number_token', $data['codigo'])
+                        ->where('id_user', Auth::id())
+                        ->where('estado_token', 1)
+                        ->exists();
+
+                    if ($tokenValido) {
                         $id = $this->record->id_cuenta;
                         session()->put("cuenta_validada_{$id}", true);
                         session()->put("cuenta_hora_{$id}", now());
@@ -112,10 +119,14 @@ class EditCuenta extends EditRecord
                         Notification::make()
                             ->success()
                             ->title('Acceso concedido')
-                            ->body("Visible por {$this->minutosExpiracion} minutos. Usa el ojo del campo para ver.")
+                            ->body("Validación exitosa. Tienes {$this->minutosExpiracion} minuto(s) de acceso.")
                             ->send();
                     } else {
-                        Notification::make()->danger()->title('Código incorrecto')->send();
+                        Notification::make()
+                            ->danger()
+                            ->title('Acceso denegado')
+                            ->body('El código es inválido, ya fue usado o no tienes permisos.')
+                            ->send();
                     }
                 }),
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Tokens\Tables;
 
+use App\Filament\Resources\Tokens\TokenResource;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,10 +14,28 @@ class TokensTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('estado_token', 'desc')
+            ->recordUrl(
+                fn ($record) => $record->estado_token === 1
+                    ? TokenResource::getUrl('edit', ['record' => $record])
+                    : null
+            )
             ->columns([
                 TextColumn::make('number_token')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->icon(fn ($record) => $record->estado_token === 1
+                        ? 'heroicon-o-clipboard-document'
+                        : ''
+                    )
+                    ->iconPosition('after')
+
+                    ->copyable(fn ($record) => $record->estado_token === 1)
+                    ->copyMessage('Token copiado')
+                    ->weight(fn ($record) => $record->estado_token === 1 ? 'bold' : 'normal')
+                    ->color(fn ($record) => $record->estado_token === 1 ? 'primary' : 'gray'),
+
                 TextColumn::make('time_token')
                     ->label('Tiempo')
                     ->sortable()
@@ -51,7 +70,8 @@ class TokensTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn ($record) => $record->estado_token === 1),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
