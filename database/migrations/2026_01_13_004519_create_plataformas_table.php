@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('plataformas', function (Blueprint $table) {
             $table->id('id_plataforma');
+            $table->bigInteger('id_usuario');
             $table->string('grupo_plataforma');
             $table->string('entidad_plataforma');
             $table->string('nombre_plataforma');

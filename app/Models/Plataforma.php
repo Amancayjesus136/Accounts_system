@@ -11,6 +11,7 @@ class Plataforma extends Model
     protected $primaryKey = 'id_plataforma';
 
     protected $fillable = [
+        'id_usuario',
         'grupo_plataforma',
         'entidad_plataforma',
         'nombre_plataforma',

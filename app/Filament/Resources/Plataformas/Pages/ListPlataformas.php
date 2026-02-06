@@ -7,6 +7,7 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Grid;
+use Illuminate\Support\Facades\Auth;
 
 class ListPlataformas extends ListRecords
 {
@@ -41,6 +42,7 @@ class ListPlataformas extends ListRecords
                 ])
                 ->mutateFormDataUsing(function (array $data) {
                     $data['estado_plataforma'] = 1;
+                    $data['id_usuario'] = Auth::id();
                     return $data;
                 }),
         ];

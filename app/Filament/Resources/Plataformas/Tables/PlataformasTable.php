@@ -2,17 +2,31 @@
 
 namespace App\Filament\Resources\Plataformas\Tables;
 
+use App\Filament\Resources\Plataformas\PlataformaResource;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class PlataformasTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                return $query->whereIn('id_usuario', [1, Auth::id()]);
+            })
+
+            ->defaultSort('estado_plataforma', 'desc')
+
+            ->recordUrl(
+                fn ($record) => $record->id_usuario === Auth::id()
+                    ? PlataformaResource::getUrl('edit', ['record' => $record])
+                    : null
+            )
             ->columns([
                 TextColumn::make('grupo_plataforma')
                     ->searchable(),
@@ -46,7 +60,8 @@ class PlataformasTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->visible(fn ($record) => $record->id_usuario === Auth::id()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

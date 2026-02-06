@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class CuentaForm
 {
@@ -31,7 +32,12 @@ class CuentaForm
                         Select::make('grupo_plataforma')
                             ->label('Grupo de plataforma')
                             ->columnSpan(4)
-                            ->options(Plataforma::query()->distinct()->pluck('grupo_plataforma', 'grupo_plataforma'))
+                            ->options(
+                                Plataforma::query()
+                                    ->whereIn('id_usuario', [1, Auth::id()])
+                                    ->distinct()
+                                    ->pluck('grupo_plataforma', 'grupo_plataforma')
+                            )
                             ->reactive()
                             ->required()
                             ->hiddenOn('view')
@@ -46,7 +52,14 @@ class CuentaForm
                             ->reactive()
                             ->required()
                             ->hiddenOn('view')
-                            ->options(fn (callable $get) => $get('grupo_plataforma') ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))->distinct()->pluck('entidad_plataforma', 'entidad_plataforma') : [])
+                            ->options(fn (callable $get) =>
+                                $get('grupo_plataforma')
+                                    ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))
+                                        ->whereIn('id_usuario', [1, Auth::id()])
+                                        ->distinct()
+                                        ->pluck('entidad_plataforma', 'entidad_plataforma')
+                                    : []
+                            )
                             ->afterStateUpdated(fn (callable $set) => $set('id_plataforma', null)),
 
                         Select::make('id_plataforma')
@@ -55,7 +68,14 @@ class CuentaForm
                             ->searchable()
                             ->required()
                             ->hiddenOn('view')
-                            ->options(fn (callable $get) => $get('grupo_plataforma') && $get('entidad_plataforma') ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))->where('entidad_plataforma', $get('entidad_plataforma'))->pluck('nombre_plataforma', 'id_plataforma') : [])
+                            ->options(fn (callable $get) =>
+                                $get('grupo_plataforma') && $get('entidad_plataforma')
+                                    ? Plataforma::where('grupo_plataforma', $get('grupo_plataforma'))
+                                        ->where('entidad_plataforma', $get('entidad_plataforma'))
+                                        ->whereIn('id_usuario', [1, Auth::id()])
+                                        ->pluck('nombre_plataforma', 'id_plataforma')
+                                    : []
+                            )
                             ->afterStateHydrated(function ($state, callable $set) {
                                 if (!$state) return;
                                 $plataforma = Plataforma::find($state);
