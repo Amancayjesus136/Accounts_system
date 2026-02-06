@@ -12,6 +12,7 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Database\Eloquent\Model;
 
 class CuentaForm
 {
@@ -71,7 +72,7 @@ class CuentaForm
                             ->disabled()
                             ->dehydrated(false)
                             ->prefixIcon('heroicon-m-computer-desktop')
-                            ->formatStateUsing(fn ($record) => $record?->plataforma?->nombre_plataforma),
+                            ->formatStateUsing(fn (?Model $record) => $record?->plataforma?->nombre_plataforma ?? '-'),
 
                         RichEditor::make('descripcion')
                             ->label('Descripción')
@@ -98,17 +99,23 @@ class CuentaForm
                                     ->visibleOn('view')
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->formatStateUsing(fn ($record) => $record->visibilidad->tipo_visibilidad)
-                                    ->prefixIcon(fn ($record) =>
-                                        in_array($record->visibilidad->tipo_visibilidad, ['Publico', 'Público'])
+                                    ->formatStateUsing(fn (?Model $record) => $record?->visibilidad?->tipo_visibilidad ?? '-')
+                                    ->prefixIcon(function (?Model $record) {
+                                        $tipo = $record?->visibilidad?->tipo_visibilidad;
+                                        if (!$tipo) return 'heroicon-m-question-mark-circle';
+
+                                        return in_array($tipo, ['Publico', 'Público'])
                                             ? 'heroicon-m-eye'
-                                            : 'heroicon-m-eye-slash'
-                                    )
-                                    ->extraInputAttributes(fn ($record) =>
-                                        in_array($record->visibilidad->tipo_visibilidad, ['Publico', 'Público'])
+                                            : 'heroicon-m-eye-slash';
+                                    })
+                                    ->extraInputAttributes(function (?Model $record) {
+                                        $tipo = $record?->visibilidad?->tipo_visibilidad;
+                                        if (!$tipo) return ['class' => 'text-gray-500'];
+
+                                        return in_array($tipo, ['Publico', 'Público'])
                                             ? ['class' => 'text-green-600 font-bold']
-                                            : ['class' => 'text-red-600 font-bold']
-                                    ),
+                                            : ['class' => 'text-red-600 font-bold'];
+                                    }),
 
                                 Toggle::make('verificacion')
                                     ->label('Cuenta verificada')
@@ -123,12 +130,12 @@ class CuentaForm
                                     ->visibleOn('view')
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->formatStateUsing(fn ($record) => $record->verificacion ? 'Verificada' : 'No verificada')
-                                    ->prefixIcon(fn ($record) =>
-                                        $record->verificacion ? 'heroicon-m-shield-check' : 'heroicon-m-shield-exclamation'
+                                    ->formatStateUsing(fn (?Model $record) => $record?->verificacion ? 'Verificada' : 'No verificada')
+                                    ->prefixIcon(fn (?Model $record) =>
+                                        $record?->verificacion ? 'heroicon-m-shield-check' : 'heroicon-m-shield-exclamation'
                                     )
-                                    ->extraInputAttributes(fn ($record) =>
-                                        $record->verificacion
+                                    ->extraInputAttributes(fn (?Model $record) =>
+                                        $record?->verificacion
                                             ? ['class' => 'text-blue-600 font-bold']
                                             : ['class' => 'text-gray-500']
                                     ),
@@ -143,16 +150,19 @@ class CuentaForm
 
                         TextInput::make('cuenta_usuario.username_cuenta')
                             ->label('Usuario')
-                            ->maxLength(100),
+                            ->maxLength(100)
+                            ->formatStateUsing(fn ($state, ?Model $record) => $state ?? $record?->cuentaUsuario?->username_cuenta),
 
                         TextInput::make('cuenta_usuario.email_cuenta')
                             ->label('Correo electrónico')
                             ->email()
-                            ->maxLength(150),
+                            ->maxLength(150)
+                            ->formatStateUsing(fn ($state, ?Model $record) => $state ?? $record?->cuentaUsuario?->email_cuenta),
 
                         TextInput::make('cuenta_usuario.number_cuenta')
                             ->label('Número')
-                            ->maxLength(50),
+                            ->maxLength(50)
+                            ->formatStateUsing(fn ($state, ?Model $record) => $state ?? $record?->cuentaUsuario?->number_cuenta),
 
                         TextInput::make('cuenta_usuario.password_cuenta')
                             ->label('Contraseña')
@@ -167,7 +177,7 @@ class CuentaForm
                             ->dehydrated(fn (string $context, $state) => $context === 'create' || (!empty($state) && $state !== '********'))
                             ->afterStateHydrated(function ($state, callable $set) {
                                 $recordId = request()->route('record');
-                                if (session()->get("cuenta_validada_{$recordId}", false)) {
+                                if ($recordId && session()->get("cuenta_validada_{$recordId}", false)) {
                                     $cuentaUsuario = \App\Models\CuentaUsuario::where('id_cuenta', $recordId)->first();
                                     if ($cuentaUsuario && $cuentaUsuario->password_cuenta) {
                                         try {
