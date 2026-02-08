@@ -19,11 +19,12 @@ class TarjetasTable
                 TextColumn::make('tipo_tarjeta')
                     ->searchable(),
 
-                TextColumn::make('monto.monto_tarjeta')
+                TextColumn::make('ultimoMonto.monto_tarjeta')
                     ->label('Saldo Actual')
                     ->money('PEN')
                     ->alignEnd()
-                    ->sortable()
+                    ->weight('bold')
+                    ->color('success')
                     ->placeholder('S/. 0.00'),
 
                 TextColumn::make('nombre_tarjeta')

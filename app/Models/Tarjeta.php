@@ -16,6 +16,17 @@ class Tarjeta extends Model
         'estado_tarjeta',
     ];
 
+    public function montos()
+    {
+        return $this->hasMany(Monto::class, 'id_tarjeta', 'id_tarjeta');
+    }
+
+    public function ultimoMonto()
+    {
+        return $this->hasOne(Monto::class, 'id_tarjeta', 'id_tarjeta')
+                    ->latestOfMany('id_monto');
+    }
+
     public function monto()
     {
         return $this->hasOne(Monto::class, 'id_tarjeta');

@@ -5,12 +5,12 @@ namespace App\Filament\Resources\Ingresos\Pages;
 use App\Filament\Resources\Ingresos\IngresoResource;
 use App\Models\Categoria;
 use App\Models\Tarjeta;
+use App\Models\Ingreso;
+use App\Models\Monto;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Section;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +30,7 @@ class ListIngresos extends ListRecords
                 ->modalSubmitActionLabel('Guardar Ingreso')
                 ->modalWidth('2xl')
                 ->successNotificationTitle('El ingreso se registró correctamente')
+
                 ->form([
                     Grid::make(3)
                         ->schema([
@@ -44,7 +45,7 @@ class ListIngresos extends ListRecords
 
                             Select::make('id_tarjeta')
                                 ->label('Tarjeta / Cuenta')
-                                ->options(Tarjeta::all()->pluck('nombre_tarjeta', 'id_tarjeta'))
+                                ->options(fn () => Tarjeta::query()->pluck('nombre_tarjeta', 'id_tarjeta'))
                                 ->searchable()
                                 ->preload()
                                 ->required()
@@ -55,19 +56,20 @@ class ListIngresos extends ListRecords
                                 ->searchable()
                                 ->allowHtml()
                                 ->options(function () {
-                                    return Categoria::all()->mapWithKeys(function ($categoria) {
+
+                                    return Categoria::query()->get()->mapWithKeys(function ($categoria) {
 
                                         $html = Blade::render(<<<HTML
-                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="display:flex;align-items:center;gap:12px;">
                                                 <div style="
-                                                    width: 25px;
-                                                    height: 25px;
-                                                    display: flex;
-                                                    align-items: center;
-                                                    justify-content: center;
-                                                    background-color: #1f2937;
-                                                    border-radius: 6px;
-                                                    flex-shrink: 0;
+                                                    width:25px;
+                                                    height:25px;
+                                                    display:flex;
+                                                    align-items:center;
+                                                    justify-content:center;
+                                                    background-color:#1f2937;
+                                                    border-radius:6px;
+                                                    flex-shrink:0;
                                                 ">
                                                     <x-{$categoria->icono_categoria} class="w-4 h-4 text-primary-600"/>
                                                 </div>
@@ -84,17 +86,45 @@ class ListIngresos extends ListRecords
                             RichEditor::make('descripcion')
                                 ->label('Descripción')
                                 ->toolbarButtons([
-                                    'bold', 'italic', 'underline',
-                                    'alignStart', 'alignCenter', 'alignEnd',
-                                    'undo', 'redo',
+                                    'bold',
+                                    'italic',
+                                    'underline',
+                                    'alignStart',
+                                    'alignCenter',
+                                    'alignEnd',
+                                    'undo',
+                                    'redo',
                                 ])
                                 ->columnSpanFull(),
                         ]),
                 ])
+
                 ->mutateFormDataUsing(function (array $data) {
+
                     $data['estado_ingreso'] = 1;
                     $data['id_usuario'] = Auth::id();
+
                     return $data;
+                })
+
+                ->after(function (Ingreso $record) {
+
+                    $tarjeta = Tarjeta::find($record->id_tarjeta);
+
+                    if ($tarjeta) {
+
+                        $saldoActual = $tarjeta->ultimoMonto
+                            ? $tarjeta->ultimoMonto->monto_tarjeta
+                            : 0;
+
+                        $nuevoSaldo = $saldoActual + $record->monto;
+
+                        Monto::create([
+                            'id_tarjeta'    => $tarjeta->id_tarjeta,
+                            'monto_tarjeta' => $nuevoSaldo,
+                            'estado_monto'  => 1,
+                        ]);
+                    }
                 }),
         ];
     }
