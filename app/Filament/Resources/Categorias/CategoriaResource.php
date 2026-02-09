@@ -20,7 +20,7 @@ class CategoriaResource extends Resource
     protected static ?string $model = Categoria::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-queue-list';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
     protected static UnitEnum|string|null $navigationGroup = 'Gestión Financiera';
     protected static ?string $recordTitleAttribute = 'categorias';
 

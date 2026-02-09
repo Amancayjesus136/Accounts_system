@@ -21,7 +21,7 @@ class IngresoResource extends Resource
 {
     protected static ?string $model = Ingreso::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static string|BackedEnum|null $navigationIcon = 'fas-money-bill-trend-up';
     protected static UnitEnum|string|null $navigationGroup = 'Gestión Financiera';
     protected static ?int $navigationSort = 2;
     protected static ?string $recordTitleAttribute = 'ingresos';
