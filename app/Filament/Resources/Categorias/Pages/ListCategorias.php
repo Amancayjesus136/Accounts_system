@@ -9,6 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Grid;
 use Guava\IconPicker\Forms\Components\IconPicker;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 
 class ListCategorias extends ListRecords
@@ -155,6 +156,7 @@ class ListCategorias extends ListRecords
                 ])
                 ->mutateFormDataUsing(function (array $data) {
                     $data['estado_categoria'] = 1;
+                    $data['id_usuario'] = Auth::id();
                     return $data;
                 }),
         ];

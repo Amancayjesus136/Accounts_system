@@ -30,6 +30,7 @@ class AuthPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->databaseNotifications()
+            ->sidebarCollapsibleOnDesktop()
             ->databaseNotificationsPolling('30s')
             ->colors([
                 'primary' => Color::Blue,

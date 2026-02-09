@@ -14,5 +14,6 @@ class Categoria extends Model
         'icono_categoria',
         'tipo_categoria',
         'estado_categoria',
+        'id_usuario',
     ];
 }

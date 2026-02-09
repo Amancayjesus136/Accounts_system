@@ -43,9 +43,9 @@ class ListIngresos extends ListRecords
                                 ->required()
                                 ->columnSpan(1),
 
-                            Select::make('id_tarjeta')
-                                ->label('Tarjeta / Cuenta')
-                                ->options(fn () => Tarjeta::query()->pluck('nombre_tarjeta', 'id_tarjeta'))
+                           Select::make('id_tarjeta')
+                                ->label('Tarjeta')
+                                ->options(fn () => Tarjeta::where('id_usuario', Auth::id())->pluck('tipo_tarjeta', 'id_tarjeta'))
                                 ->searchable()
                                 ->preload()
                                 ->required()
@@ -56,29 +56,30 @@ class ListIngresos extends ListRecords
                                 ->searchable()
                                 ->allowHtml()
                                 ->options(function () {
+                                    return Categoria::where('id_usuario', Auth::id())
+                                        ->get()
+                                        ->mapWithKeys(function ($categoria) {
 
-                                    return Categoria::query()->get()->mapWithKeys(function ($categoria) {
-
-                                        $html = Blade::render(<<<HTML
-                                            <div style="display:flex;align-items:center;gap:12px;">
-                                                <div style="
-                                                    width:25px;
-                                                    height:25px;
-                                                    display:flex;
-                                                    align-items:center;
-                                                    justify-content:center;
-                                                    background-color:#1f2937;
-                                                    border-radius:6px;
-                                                    flex-shrink:0;
-                                                ">
-                                                    <x-{$categoria->icono_categoria} class="w-4 h-4 text-primary-600"/>
+                                            $html = Blade::render(<<<HTML
+                                                <div style="display:flex;align-items:center;gap:12px;">
+                                                    <div style="
+                                                        width:25px;
+                                                        height:25px;
+                                                        display:flex;
+                                                        align-items:center;
+                                                        justify-content:center;
+                                                        background-color:#1f2937;
+                                                        border-radius:6px;
+                                                        flex-shrink:0;
+                                                    ">
+                                                        <x-{$categoria->icono_categoria} class="w-4 h-4 text-primary-600"/>
+                                                    </div>
+                                                    <span class="font-medium">{$categoria->nombre_categoria}</span>
                                                 </div>
-                                                <span class="font-medium">{$categoria->nombre_categoria}</span>
-                                            </div>
-                                        HTML);
+                                            HTML);
 
-                                        return [$categoria->id_categoria => $html];
-                                    });
+                                            return [$categoria->id_categoria => $html];
+                                        });
                                 })
                                 ->required()
                                 ->columnSpan(1),

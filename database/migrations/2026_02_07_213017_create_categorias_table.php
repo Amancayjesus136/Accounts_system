@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('icono_categoria');
             $table->string('tipo_categoria');
             $table->integer('estado_categoria');
+            $table->bigInteger('id_usuario');
             $table->timestamps();
         });
     }
