@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Gastos\Pages;
 
 use App\Filament\Resources\Gastos\GastoResource;
+use App\Mail\PresupuestoAlerta;
 use App\Models\Categoria;
 use App\Models\Gasto;
 use App\Models\Monto;
@@ -15,6 +16,7 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Mail;
 
 class ListGastos extends ListRecords
 {
@@ -110,22 +112,57 @@ class ListGastos extends ListRecords
                 })
 
                 ->after(function (Gasto $record) {
-
                     $tarjeta = Tarjeta::find($record->id_tarjeta);
-
                     if ($tarjeta) {
-
-                        $saldoActual = $tarjeta->ultimoMonto
-                            ? $tarjeta->ultimoMonto->monto_tarjeta
-                            : 0;
-
+                        $saldoActual = $tarjeta->ultimoMonto ? $tarjeta->ultimoMonto->monto_tarjeta : 0;
                         $nuevoSaldo = $saldoActual - $record->monto;
-
                         Monto::create([
                             'id_tarjeta'    => $tarjeta->id_tarjeta,
                             'monto_tarjeta' => $nuevoSaldo,
                             'estado_monto'  => 1,
                         ]);
+                    }
+
+                    $presupuesto = \App\Models\Presupuesto::where('id_categoria', $record->id_categoria)
+                        ->where('id_usuario', Auth::id())
+                        ->first();
+
+                    if ($presupuesto && $presupuesto->monto_presupuesto > 0) {
+                        $inicioMes = now()->startOfMonth();
+                        $finMes = now()->endOfMonth();
+
+                        $totalGastadoMes = Gasto::where('id_categoria', $record->id_categoria)
+                            ->where('id_usuario', Auth::id())
+                            ->whereBetween('created_at', [$inicioMes, $finMes])
+                            ->sum('monto');
+
+                        $montoMax = $presupuesto->monto_presupuesto;
+                        $porcentajePrevio = (($totalGastadoMes - $record->monto) / $montoMax) * 100;
+                        $porcentajeActual = ($totalGastadoMes / $montoMax) * 100;
+
+                        $umbrales = [25, 50, 75, 80, 90, 95, 100];
+                        $enviarCorreo = false;
+                        $umbralAlcanzado = 0;
+
+                        foreach ($umbrales as $umbral) {
+                            if ($porcentajePrevio < $umbral && $porcentajeActual >= $umbral) {
+                                $enviarCorreo = true;
+                                $umbralAlcanzado = $umbral;
+                                break;
+                            }
+                        }
+
+                        if ($enviarCorreo || $porcentajeActual > 100) {
+                            $esExceso = $porcentajeActual > 100;
+
+                            Mail::to(Auth::user()->email)->send(
+                                new PresupuestoAlerta(
+                                    $record->categoria->nombre_categoria,
+                                    round($porcentajeActual, 2),
+                                    $esExceso
+                                )
+                            );
+                        }
                     }
                 }),
         ];
