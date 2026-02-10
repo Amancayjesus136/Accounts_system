@@ -24,12 +24,12 @@ class ListGastos extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Nuevo ingreso')
+                ->label('Nuevo gasto')
                 ->icon('heroicon-o-plus')
-                ->modalHeading('Registrar Ingreso')
-                ->modalSubmitActionLabel('Guardar Ingreso')
+                ->modalHeading('Registrar gasto')
+                ->modalSubmitActionLabel('Guardar gasto')
                 ->modalWidth('2xl')
-                ->successNotificationTitle('El ingreso se registró correctamente')
+                ->successNotificationTitle('El gasto se registró correctamente')
 
                 ->form([
                     Grid::make(3)
@@ -57,6 +57,7 @@ class ListGastos extends ListRecords
                                 ->allowHtml()
                                 ->options(function () {
                                     return Categoria::where('id_usuario', Auth::id())
+                                        ->where('tipo_categoria', 'Gasto')
                                         ->get()
                                         ->mapWithKeys(function ($categoria) {
 
