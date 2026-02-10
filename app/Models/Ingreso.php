@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Ingreso extends Model
@@ -31,5 +32,15 @@ class Ingreso extends Model
     public function usuario()
     {
         return $this->belongsTo(User::class, 'id_usuario', 'id');
+    }
+
+    public function getCreatedAgoAttribute()
+    {
+        return Carbon::parse($this->created_at)->diffForHumans();
+    }
+
+    public function getUpdatedAgoAttribute()
+    {
+        return Carbon::parse($this->updated_at)->diffForHumans();
     }
 }
