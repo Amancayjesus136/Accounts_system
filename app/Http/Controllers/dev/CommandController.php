@@ -63,4 +63,26 @@ class CommandController extends Controller
             'message' => 'Symlink creado correctamente.'
         ]);
     }
+
+    public function runMigrate(): JsonResponse
+    {
+        Artisan::call('migrate', ['--force' => true]);
+
+        return response()->json([
+            'success' => true,
+            'output' => Artisan::output(),
+            'message' => 'Migraci贸n ejecutada correctamente.'
+        ]);
+    }
+
+    public function runMigrateReset(): \Illuminate\Http\JsonResponse
+    {
+        Artisan::call('migrate:reset', ['--force' => true]);
+
+        return response()->json([
+            'success' => true,
+            'output' => Artisan::output(),
+            'message' => 'Migraciones revertidas correctamente.'
+        ]);
+    }
 }
