@@ -47,7 +47,7 @@ class ListGastos extends ListRecords
 
                            Select::make('id_tarjeta')
                                 ->label('Tarjeta')
-                                ->options(fn () => Tarjeta::where('id_usuario', Auth::id())->pluck('tipo_tarjeta', 'id_tarjeta'))
+                                ->options(fn () => Tarjeta::where('id_usuario', Auth::id())->pluck('nombre_tarjeta', 'id_tarjeta'))
                                 ->searchable()
                                 ->preload()
                                 ->required()
