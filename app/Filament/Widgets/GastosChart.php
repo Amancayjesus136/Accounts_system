@@ -54,4 +54,9 @@ class GastosChart extends ChartWidget
     {
         return 'bar';
     }
+
+    public static function canView(): bool
+    {
+        return Auth::id() !== 1;
+    }
 }

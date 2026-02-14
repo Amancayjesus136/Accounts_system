@@ -50,4 +50,9 @@ class StatsOverview extends BaseWidget
                 ->color('primary'),
         ];
     }
+
+    public static function canView(): bool
+    {
+        return Auth::id() !== 1;
+    }
 }
